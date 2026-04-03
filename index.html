@@ -989,39 +989,22 @@
           "MATH 111": "Differential Calculus",
           "CHEM LEC 111": "Chemistry for Engineers (Lecture)",
           "CHEM LAB 111": "Chemistry for Engineers (Laboratory)",
-          "DRAW 111": "Engineering Drawing and Plans",
-          "CE 111": "Civil Engineering Orientation",
-          "GE 101": "Understanding the Self",
-          "GE 102": "The Contemporary World",
-          "GE 102.1": "Gender and Society",
-          "PE 109": "PATHFIT 1",
-          "NSTP 101": "NSTP 1",
+          
           "MATH 122": "Integral Calculus",
           "PHYS 121": "Physics for Engineers",
-          "COMP 121": "Computer Fundamentals and Programming",
-          "GE 103": "Arts Appreciation",
+          
           "GE 104": "Mathematics in the Modern World",
-          "GE 105": "Living in the IT Era",
-          "PE 110": "PATHFIT 2",
-          "NSTP 102": "NSTP 2",
+          
           "MATH 213": "Differential Equations",
           "MECH 211": "Statics of Rigid Bodies",
           "SURV 211": "Fundamentals of Surveying",
           "ECON 211": "Engineering Economics",
           "MNGT 211": "Engineering Management",
-          "CAD 211": "Computer-Aided Drafting",
-          "GE 106": "Purposive Communication",
-          "GE 107": "Ethics",
-          "PE 111": "PATHFIT 3",
+
           "MATH 224": "Engineering Data Analysis",
           "MECH 222": "Dynamics of Rigid Bodies",
           "CE 221": "Mechanics of Deformable Bodies",
-          "CE 223": "Construction Materials and Testing",
-          "CE 222": "Geology for Engineers",
-          "GE 108": "Science, Technology and Society",
-          "GE 109": "Readings in Philippine History",
-          "GEM 101": "Life and Works of Rizal",
-          "PE 112": "PATHFIT 4",
+          
           "TECHNO 101": "Technopreneurship 101",
           "CE 311": "Structural Theory",
           "CE 312": "Highway and Railroad Engineering",
@@ -1035,18 +1018,18 @@
           "CE 325": "Hydraulics",
           "CE 326": "Principles of Steel Design",
           "CE 327": "Principles of Reinforced Concrete",
-          OJT: "On-the-Job Training",
+          
           "CE 411": "Geotechnical Engineering",
           "CE 412": "Principles of Transportation Engineering",
           "CE 413": "CE Project 1",
           "CE 414": "Quantity Surveying",
-          "PC 411": "Specialization 1",
-          "PC 412": "Specialization 2",
+          "PC 411": "Reinforced Concrete Design",
+          "PC 412": "Design of Steel Structures",
           "CE 421": "CE Project 2",
           "CE 422": "Construction Methods & Project Management",
-          "PC 421": "Specialization 3",
-          "PC 422": "Specialization 4",
-          "PC 423": "Specialization 5",
+          "PC 421": "Pre-stressed Concrete Design",
+          "PC 422": "Foundation & Retaining Wall Design",
+          "PC 423": "Earthquake Engineering",
         };
 
         let state = { courses: {}, order: [], active: null };
@@ -1055,7 +1038,7 @@
         function toTitleCase(str) {
           if (!str) return "";
           const smallWords =
-            /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
+            /^(a|an|and|as|at|with|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
           return str
             .split(" ")
             .map((word, index, array) => {
