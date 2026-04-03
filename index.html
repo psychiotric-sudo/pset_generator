@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PSET Tracker | Engineering Neural Interface</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap"
+      rel="stylesheet" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #08080a;
+        --surface: #111114;
+        --surface2: #16161a;
+        --surface3: #1c1c21;
+        --border: #1f1f24;
+        --border-hi: #313139;
+        --text: #ececed;
+        --muted: #6b6b7a;
+        --muted2: #4a4a55;
+        --accent: #7fff8a;
+        --accent-dim: rgba(127, 255, 138, 0.1);
+        --done: #4ade80;
+        --danger: #ff6b6b;
+        --danger-dim: rgba(255, 107, 107, 0.1);
+        --radius: 10px;
+        --mono: "DM Mono", monospace;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      #app {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        max-width: 720px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      header {
+        padding: 24px 20px 16px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(8, 8, 10, 0.8);
+        backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      header h1 {
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.3em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      header .tagline-box {
+        text-align: right;
+      }
+      header .tagline {
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: -0.03em;
+      }
+      header .tagline span {
+        color: var(--accent);
+      }
+      .version-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .version {
+        font-size: 9px;
+        color: var(--muted2);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .made-by {
+        font-size: 9px;
+        color: var(--accent);
+        opacity: 0.8;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .made-by:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      main {
+        flex: 1;
+        padding: 0 20px 160px;
+        overflow-y: auto;
+      }
+
+      .section-label {
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 28px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 6px;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .input-group:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent-dim);
+      }
+
+      input[type="text"] {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 15px;
+        padding: 10px 12px;
+        outline: none;
+      }
+      input[type="text"]::placeholder {
+        color: var(--muted2);
+      }
+
+      button {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        border-radius: calc(var(--radius) - 4px);
+        cursor: pointer;
+        transition: all 0.2s;
+        -webkit-tap-highlight-color: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        padding: 10px 20px;
+      }
+      .btn-primary:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+        opacity: 0.8;
+      }
+
+      .btn-icon {
+        background: var(--surface2);
+        color: var(--muted);
+        padding: 8px;
+        border: 1px solid var(--border);
+      }
+      .btn-icon:hover {
+        color: var(--text);
+        border-color: var(--border-hi);
+      }
+
+      /* ── Tabs ── */
+      .course-tabs-wrap {
+        margin-top: 20px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .course-tabs-wrap::-webkit-scrollbar {
+        display: none;
+      }
+      .course-tabs {
+        display: flex;
+        gap: 8px;
+        padding-bottom: 4px;
+        width: max-content;
+      }
+
+      .course-tab {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 8px 16px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+      }
+      .course-tab.active {
+        background: var(--tab-dim, var(--accent-dim));
+        border-color: var(--tab-color, var(--accent));
+        color: var(--tab-color, var(--accent));
+      }
+      .course-tab:hover:not(.active) {
+        border-color: var(--border-hi);
+        color: var(--text);
+      }
+
+      .tab-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--muted2);
+      }
+      .course-tab.active .tab-dot {
+        background: var(--tab-color, var(--accent));
+      }
+
+      /* ── Empty ── */
+      .no-courses {
+        margin-top: 60px;
+        text-align: center;
+        color: var(--muted2);
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .no-courses svg {
+        width: 48px;
+        height: 48px;
+        opacity: 0.2;
+      }
+
+      /* ── Course header ── */
+      .pset-section {
+        margin-top: 32px;
+        animation: fadeIn 0.3s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .course-header-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--course-color, var(--accent));
+        border-radius: var(--radius);
+        padding: 12px 16px;
+      }
+      .course-header-name {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 0.02em;
+      }
+      .course-header-name span {
+        color: var(--course-color, var(--accent));
+        font-weight: 600;
+      }
+
+      /* ── PSET list ── */
+      .pset-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .pset-block {
+        position: relative;
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .pset-card {
+        position: relative;
+        z-index: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        transition: all 0.2s;
+      }
+      .pset-card.completed {
+        border-color: var(--done);
+        background: rgba(74, 222, 128, 0.03);
+        opacity: 0.8;
+      }
+      .pset-card.completed .pset-title {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
+      .pset-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+      .pset-number {
+        font-size: 10px;
+        color: var(--accent);
+        background: var(--accent-dim);
+        padding: 2px 6px;
+        border-radius: 4px;
+        min-width: 60px;
+        text-align: center;
+      }
+      .pset-title {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 400;
+      }
+
+      .pset-actions {
+        display: flex;
+        gap: 4px;
+      }
+      .action-btn {
+        background: transparent;
+        color: var(--muted);
+        padding: 8px;
+        border-radius: 6px;
+      }
+      .action-btn:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .action-btn.done:hover {
+        color: var(--done);
+        background: rgba(74, 222, 128, 0.1);
+      }
+      .pset-card.completed .action-btn.done {
+        color: var(--done);
+      }
+      .action-btn.delete:hover {
+        color: var(--danger);
+        background: var(--danger-dim);
+      }
+
+      /* ── Subtopics ── */
+      .subtopic-panel {
+        display: none;
+        border-top: 1px solid var(--border);
+        background: var(--surface2);
+        padding: 12px 16px;
+      }
+      .pset-block.expanded .subtopic-panel {
+        display: block;
+      }
+      .subtopic-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .subtopic-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .subtopic-text {
+        flex: 1;
+        font-style: italic;
+      }
+
+      /* ── Action bar ── */
+      #action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(8, 8, 10, 0.9);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border);
+        padding: 16px 20px 32px;
+        display: flex;
+        gap: 12px;
+        z-index: 100;
+      }
+      @media (min-width: 721px) {
+        #action-bar {
+          left: 50%;
+          right: auto;
+          transform: translateX(-50%);
+          width: 720px;
+        }
+      }
+
+      .btn-main {
+        flex: 1;
+        padding: 12px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border-radius: var(--radius);
+        font-weight: 600;
+      }
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      /* ── Toast ── */
+      #toast {
+        position: fixed;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--surface3);
+        color: var(--text);
+        padding: 12px 20px;
+        border-radius: 30px;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-hi);
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* Color Picker */
+      .color-picker-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .color-swatch {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: 0.2s;
+      }
+      .color-swatch.selected {
+        border-color: #fff;
+        transform: scale(1.2);
+      }
+
+      /* Author Modal Specific */
+      .author-box {
+        text-align: center;
+        padding: 32px 20px;
+      }
+      .author-avatar {
+        width: 80px;
+        height: 80px;
+        background: var(--accent-dim);
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .social-links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 14px;
+        border-radius: var(--radius);
+        background: var(--surface2);
+        color: var(--text);
+        text-decoration: none;
+        border: 1px solid var(--border);
+        transition: 0.2s;
+        font-size: 14px;
+      }
+      .social-btn:hover {
+        border-color: var(--accent);
+        background: var(--surface3);
+        transform: translateY(-2px);
+      }
+      .social-btn svg {
+        width: 18px;
+        height: 18px;
+        color: var(--accent);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Progress Bar */
+      .progress-container {
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div>
+          <h1>PSET Tracker</h1>
+          <div class="tagline-box">
+            <div class="version-row">
+              <div class="version">v0.6.3-beta</div>
+              <div class="made-by" onclick="openAuthorModal()">by @chqrlzz</div>
+            </div>
+            <div class="tagline">PSET<span>_</span>TRACK</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button class="btn-icon" id="menu-btn" title="Menu">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </button>
+          <div
+            class="menu-popover hidden"
+            id="main-menu"
+            style="
+              position: absolute;
+              top: 100%;
+              right: 0;
+              background: var(--surface2);
+              border: 1px solid var(--border-hi);
+              border-radius: 8px;
+              padding: 8px;
+              z-index: 200;
+              width: 200px;
+              margin-top: 8px;
+            ">
+            <div
+              style="
+                padding: 10px;
+                font-size: 12px;
+                color: var(--text);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+              onclick="openAuthorModal()">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Developer Info
+            </div>
+            <div
+              style="
+                height: 1px;
+                background: var(--border);
+                margin: 4px 0;
+              "></div>
+            <div
+              style="
+                padding: 10px;
+                font-size: 12px;
+                color: var(--text);
+                cursor: pointer;
+              "
+              onclick="exportData()"
+              >Export Backup</div
+            >
+            <div
+              style="
+                padding: 10px;
+                font-size: 12px;
+                color: var(--text);
+                cursor: pointer;
+              "
+              onclick="document.getElementById('import-file').click()"
+              >Import Backup</div
+            >
+            <div
+              style="
+                padding: 10px;
+                font-size: 12px;
+                color: var(--danger);
+                cursor: pointer;
+              "
+              onclick="confirmClearAll()"
+              >Clear All Data</div
+            >
+          </div>
+          <input
+            type="file"
+            id="import-file"
+            class="hidden"
+            accept=".json"
+            onchange="importData(this)" />
+        </div>
+      </header>
+
+      <main>
+        <div class="section-label">Enroll Course</div>
+        <div class="input-group">
+          <input
+            type="text"
+            id="course-input"
+            placeholder="Course Code (e.g. MATH 111)"
+            list="curriculum-list"
+            autocomplete="off" />
+          <datalist id="curriculum-list"></datalist>
+          <button class="btn-primary" onclick="addCourse()">+ Enroll</button>
+        </div>
+
+        <div class="course-tabs-wrap" id="tabs-wrap">
+          <div class="course-tabs" id="course-tabs"></div>
+        </div>
+
+        <div class="no-courses" id="empty-state">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5">
+            <path d="M12 2v20M2 12h20" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+          <p>Select a course to start tracking.</p>
+        </div>
+
+        <div class="pset-section" id="pset-section" style="display: none">
+          <div class="course-header-bar" id="course-header-bar">
+            <div class="course-header-name" id="course-header-text"></div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="action-btn"
+                onclick="startEditCourse()"
+                title="Edit Name">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2">
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button
+                class="action-btn delete"
+                onclick="deleteCourse()"
+                title="Drop Course">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2">
+                  <path d="M3 6h18" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="color-picker-row" id="color-picker-row"></div>
+
+          <div style="margin-bottom: 24px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 11px;
+                color: var(--muted);
+                margin-bottom: 4px;
+              ">
+              <span>Syllabus Progress</span>
+              <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-container"
+              ><div
+                class="progress-bar"
+                id="progress-bar"
+                style="width: 0%"></div
+            ></div>
+          </div>
+
+          <div class="section-label">Tasks / Problem Sets</div>
+          <div class="input-group" style="margin-bottom: 20px">
+            <input
+              type="text"
+              id="pset-input"
+              placeholder="PSET title (e.g. Homework 1)" />
+            <button class="btn-primary" onclick="addPset()">Add</button>
+          </div>
+
+          <ul class="pset-list" id="pset-list"></ul>
+        </div>
+      </main>
+    </div>
+
+    <div id="action-bar">
+      <button class="btn-main btn-secondary" onclick="previewAll('report')"
+        >Summary</button
+      >
+      <button class="btn-main btn-primary" onclick="copyAll('report')"
+        >Copy Report</button
+      >
+      <button
+        class="btn-main btn-primary"
+        style="
+          background: var(--surface2);
+          color: var(--accent);
+          border: 1px solid var(--accent);
+        "
+        onclick="copyAll('tree')"
+        >Copy Tree</button
+      >
+    </div>
+
+    <!-- Main Preview Modal -->
+    <div
+      id="preview-modal"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      "
+      onclick="if (event.target === this) this.classList.add('hidden');">
+      <div
+        style="
+          background: var(--surface);
+          border: 1px solid var(--border-hi);
+          border-radius: 16px;
+          width: 100%;
+          max-width: 600px;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+        ">
+        <div
+          style="
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+          ">
+          <span id="preview-title">Report Summary</span>
+          <button
+            onclick="
+              document.getElementById('preview-modal').classList.add('hidden')
+            "
+            style="
+              background: transparent;
+              color: var(--muted);
+              font-size: 18px;
+            "
+            >✕</button
+          >
+        </div>
+        <div
+          id="preview-content"
+          style="
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            font-size: 13px;
+            white-space: pre;
+            font-family: var(--mono);
+          "></div>
+        <div style="padding: 20px; border-top: 1px solid var(--border)">
+          <button
+            class="btn-primary"
+            style="width: 100%"
+            onclick="copyFromPreview()"
+            >Copy to Clipboard</button
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Author Modal -->
+    <div
+      id="author-modal"
+      class="hidden"
+      style="
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      "
+      onclick="if (event.target === this) this.classList.add('hidden');">
+      <div
+        style="
+          background: var(--surface);
+          border: 1px solid var(--border-hi);
+          border-radius: 20px;
+          width: 100%;
+          max-width: 400px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: var(--shadow);
+        ">
+        <div class="author-box">
+          <div class="author-avatar">C</div>
+          <h2
+            style="
+              font-size: 20px;
+              font-weight: 600;
+              color: var(--accent);
+              margin-bottom: 4px;
+            "
+            >@chqrlzz</h2
+          >
+          <p
+            style="
+              font-size: 12px;
+              color: var(--muted);
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+            "
+            >Lead Developer</p
+          >
+
+          <div class="social-links">
+            <a href="https://t.me/chqrlzz" target="_blank" class="social-btn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+              Message on Telegram
+            </a>
+            <a href="https://m.me/chqrlzz" target="_blank" class="social-btn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                  d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+              </svg>
+              Message on Messenger
+            </a>
+          </div>
+
+          <button
+            class="btn-secondary"
+            style="margin-top: 32px; width: 100%; padding: 12px"
+            onclick="
+              document.getElementById('author-modal').classList.add('hidden')
+            "
+            >Close Interface</button
+          >
+        </div>
+      </div>
+    </div>
+
+    <div id="toast">
+      <span id="toast-msg"></span>
+    </div>
+
+    <script>
+      (function (window) {
+        "use strict";
+
+        const STORAGE_KEY = "pset-tracker-v6";
+        const COLORS = [
+          { id: "green", hex: "#7fff8a", dim: "rgba(127, 255, 138, 0.15)" },
+          { id: "blue", hex: "#7eb8ff", dim: "rgba(126, 184, 255, 0.15)" },
+          { id: "purple", hex: "#c084fc", dim: "rgba(192, 132, 252, 0.15)" },
+          { id: "orange", hex: "#fb923c", dim: "rgba(251, 146, 60, 0.15)" },
+          { id: "pink", hex: "#f472b6", dim: "rgba(244, 114, 182, 0.15)" },
+          { id: "cyan", hex: "#22d3ee", dim: "rgba(34, 211, 238, 0.15)" },
+          { id: "yellow", hex: "#facc15", dim: "rgba(250, 204, 21, 0.15)" },
+          { id: "red", hex: "#ff6b6b", dim: "rgba(255, 107, 107, 0.15)" },
+        ];
+
+        const CURRICULUM = {
+          "MATH 111": "Differential Calculus",
+          "CHEM LEC 111": "Chemistry for Engineers (Lecture)",
+          "CHEM LAB 111": "Chemistry for Engineers (Laboratory)",
+          "DRAW 111": "Engineering Drawing and Plans",
+          "CE 111": "Civil Engineering Orientation",
+          "GE 101": "Understanding the Self",
+          "GE 102": "The Contemporary World",
+          "GE 102.1": "Gender and Society",
+          "PE 109": "PATHFIT 1",
+          "NSTP 101": "NSTP 1",
+          "MATH 122": "Integral Calculus",
+          "PHYS 121": "Physics for Engineers",
+          "COMP 121": "Computer Fundamentals and Programming",
+          "GE 103": "Arts Appreciation",
+          "GE 104": "Mathematics in the Modern World",
+          "GE 105": "Living in the IT Era",
+          "PE 110": "PATHFIT 2",
+          "NSTP 102": "NSTP 2",
+          "MATH 213": "Differential Equations",
+          "MECH 211": "Statics of Rigid Bodies",
+          "SURV 211": "Fundamentals of Surveying",
+          "ECON 211": "Engineering Economics",
+          "MNGT 211": "Engineering Management",
+          "CAD 211": "Computer-Aided Drafting",
+          "GE 106": "Purposive Communication",
+          "GE 107": "Ethics",
+          "PE 111": "PATHFIT 3",
+          "MATH 224": "Engineering Data Analysis",
+          "MECH 222": "Dynamics of Rigid Bodies",
+          "CE 221": "Mechanics of Deformable Bodies",
+          "CE 223": "Construction Materials and Testing",
+          "CE 222": "Geology for Engineers",
+          "GE 108": "Science, Technology and Society",
+          "GE 109": "Readings in Philippine History",
+          "GEM 101": "Life and Works of Rizal",
+          "PE 112": "PATHFIT 4",
+          "TECHNO 101": "Technopreneurship 101",
+          "CE 311": "Structural Theory",
+          "CE 312": "Highway and Railroad Engineering",
+          "CE 313": "Engineering Utilities 1",
+          "CE 314": "Engineering Utilities 2",
+          "CE 315": "Numerical Solutions to CE Problems",
+          "GEE 108": "Environmental Science",
+          "CE 322": "Building System Design",
+          "CE 323": "CE Laws, Ethics and Standards",
+          "CE 324": "Hydrology",
+          "CE 325": "Hydraulics",
+          "CE 326": "Principles of Steel Design",
+          "CE 327": "Principles of Reinforced Concrete",
+          OJT: "On-the-Job Training",
+          "CE 411": "Geotechnical Engineering",
+          "CE 412": "Principles of Transportation Engineering",
+          "CE 413": "CE Project 1",
+          "CE 414": "Quantity Surveying",
+          "PC 411": "Specialization 1",
+          "PC 412": "Specialization 2",
+          "CE 421": "CE Project 2",
+          "CE 422": "Construction Methods & Project Management",
+          "PC 421": "Specialization 3",
+          "PC 422": "Specialization 4",
+          "PC 423": "Specialization 5",
+        };
+
+        let state = { courses: {}, order: [], active: null };
+
+        // --- Internal Helpers ---
+        function toTitleCase(str) {
+          if (!str) return "";
+          const smallWords =
+            /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|v.?|vs.?|via)$/i;
+          return str
+            .split(" ")
+            .map((word, index, array) => {
+              if (
+                index > 0 &&
+                index < array.length - 1 &&
+                smallWords.test(word)
+              )
+                return word.toLowerCase();
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            })
+            .join(" ");
+        }
+
+        // --- UI Functions ---
+        window.openAuthorModal = function () {
+          document.getElementById("author-modal").classList.remove("hidden");
+          document.getElementById("main-menu").classList.add("hidden");
+        };
+
+        // --- Initialize Datalist ---
+        function initCurriculum() {
+          const list = document.getElementById("curriculum-list");
+          Object.keys(CURRICULUM).forEach((code) => {
+            const opt = document.createElement("option");
+            opt.value = code;
+            opt.textContent = CURRICULUM[code];
+            list.appendChild(opt);
+          });
+        }
+
+        window.addCourse = function () {
+          const input = document.getElementById("course-input");
+          const code = input.value.trim().toUpperCase();
+          if (!code) return;
+
+          const title = CURRICULUM[code] || toTitleCase(code);
+
+          if (!state.courses[code]) {
+            state.courses[code] = {
+              title: title,
+              psets: [],
+              color: COLORS[Math.floor(Math.random() * COLORS.length)].id,
+            };
+            state.order.unshift(code);
+          }
+
+          state.active = code;
+          input.value = "";
+          saveAndRender();
+        };
+
+        window.setActive = function (code) {
+          state.active = code;
+          saveAndRender();
+        };
+
+        window.startEditCourse = function () {
+          const code = state.active;
+          const currentTitle = state.courses[code].title;
+          const newTitle = prompt(`Edit title for ${code}:`, currentTitle);
+          if (newTitle !== null) {
+            state.courses[code].title =
+              toTitleCase(newTitle.trim()) || currentTitle;
+            saveAndRender();
+          }
+        };
+
+        window.deleteCourse = function () {
+          if (!confirm(`Drop ${state.active}? Data will be lost.`)) return;
+          delete state.courses[state.active];
+          state.order = state.order.filter((c) => c !== state.active);
+          state.active = state.order[0] || null;
+          saveAndRender();
+        };
+
+        window.setCourseColor = function (colorId) {
+          state.courses[state.active].color = colorId;
+          saveAndRender();
+        };
+
+        window.addPset = function () {
+          const input = document.getElementById("pset-input");
+          const title = input.value.trim();
+          if (!title || !state.active) return;
+
+          state.courses[state.active].psets.push({
+            title: toTitleCase(title),
+            completed: false,
+            subtopics: [],
+          });
+
+          input.value = "";
+          saveAndRender();
+          input.focus();
+        };
+
+        window.togglePsetDone = function (idx) {
+          const pset = state.courses[state.active].psets[idx];
+          pset.completed = !pset.completed;
+          saveAndRender();
+        };
+
+        window.editPsetTitle = function (idx) {
+          const pset = state.courses[state.active].psets[idx];
+          const newTitle = prompt("Edit PSET Title:", pset.title);
+          if (newTitle !== null) {
+            pset.title = toTitleCase(newTitle.trim()) || pset.title;
+            saveAndRender();
+          }
+        };
+
+        window.deletePset = function (idx) {
+          state.courses[state.active].psets.splice(idx, 1);
+          saveAndRender();
+        };
+
+        window.toggleSubtopics = function (idx) {
+          const blocks = document.querySelectorAll(".pset-block");
+          blocks[idx].classList.toggle("expanded");
+        };
+
+        window.addSubtopic = function (psetIdx) {
+          const input = document.getElementById(`sub-input-${psetIdx}`);
+          const text = input.value.trim();
+          if (!text) return;
+          state.courses[state.active].psets[psetIdx].subtopics.push(
+            toTitleCase(text),
+          );
+          input.value = "";
+          saveAndRender();
+          document
+            .querySelectorAll(".pset-block")
+            [psetIdx].classList.add("expanded");
+        };
+
+        window.deleteSubtopic = function (psetIdx, subIdx) {
+          state.courses[state.active].psets[psetIdx].subtopics.splice(
+            subIdx,
+            1,
+          );
+          saveAndRender();
+          document
+            .querySelectorAll(".pset-block")
+            [psetIdx].classList.add("expanded");
+        };
+
+        function saveAndRender() {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          render();
+        }
+
+        function render() {
+          const hasCourses = state.order.length > 0;
+          document
+            .getElementById("empty-state")
+            .classList.toggle("hidden", hasCourses);
+
+          renderTabs();
+
+          if (state.active && state.courses[state.active]) {
+            document.getElementById("pset-section").style.display = "block";
+            renderCourseHeader();
+            renderPsets();
+          } else {
+            document.getElementById("pset-section").style.display = "none";
+          }
+        }
+
+        function renderTabs() {
+          const container = document.getElementById("course-tabs");
+          container.innerHTML = "";
+          state.order.forEach((code) => {
+            const c = state.courses[code];
+            const color = COLORS.find((col) => col.id === c.color) || COLORS[0];
+            const tab = document.createElement("div");
+            tab.className = `course-tab ${state.active === code ? "active" : ""}`;
+            if (state.active === code) {
+              tab.style.setProperty("--tab-color", color.hex);
+              tab.style.setProperty("--tab-dim", color.dim);
+            }
+            tab.onclick = () => setActive(code);
+            tab.innerHTML = `<span class="tab-dot"></span>${code}`;
+            container.appendChild(tab);
+          });
+        }
+
+        function renderCourseHeader() {
+          const course = state.courses[state.active];
+          const color = COLORS.find((c) => c.id === course.color) || COLORS[0];
+          const headerText = document.getElementById("course-header-text");
+          headerText.innerHTML = `<span>${state.active}</span> — ${course.title}`;
+          headerText.style.setProperty("--course-color", color.hex);
+
+          // Progress
+          const total = course.psets.length;
+          const done = course.psets.filter((p) => p.completed).length;
+          const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+          document.getElementById("progress-bar").style.width = `${percent}%`;
+          document.getElementById("progress-text").innerText =
+            `${done}/${total} Completed (${percent}%)`;
+
+          // Color picker
+          const picker = document.getElementById("color-picker-row");
+          picker.innerHTML = "";
+          COLORS.forEach((c) => {
+            const sw = document.createElement("div");
+            sw.className = `color-swatch ${course.color === c.id ? "selected" : ""}`;
+            sw.style.background = c.hex;
+            sw.onclick = () => setCourseColor(c.id);
+            picker.appendChild(sw);
+          });
+        }
+
+        function renderPsets() {
+          const container = document.getElementById("pset-list");
+          container.innerHTML = "";
+          const course = state.courses[state.active];
+
+          course.psets.forEach((p, i) => {
+            const li = document.createElement("li");
+            li.className = "pset-block";
+            li.innerHTML = `
+        <div class="pset-card ${p.completed ? "completed" : ""}">
+          <div class="pset-item">
+            <div class="pset-number">PSET#${i + 1}</div>
+            <div class="pset-title">${p.title}</div>
+            <div class="pset-actions">
+               <button class="action-btn done" onclick="togglePsetDone(${i})">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button class="action-btn" onclick="toggleSubtopics(${i})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+               <button class="action-btn" onclick="editPsetTitle(${i})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="action-btn delete" onclick="deletePset(${i})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="subtopic-panel">
+            <div class="subtopic-list">
+              ${p.subtopics
+                .map(
+                  (s, si) => `
+                <div class="subtopic-item">
+                  <span style="color:var(--muted2)">└</span>
+                  <span class="subtopic-text">${s}</span>
+                  <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${i}, ${si})">✕</button>
+                </div>
+              `,
+                )
+                .join("")}
+            </div>
+            <div class="input-group" style="padding:0; border:none; background:var(--surface3)">
+              <input type="text" id="sub-input-${i}" placeholder="Add subtopic..." style="font-size:12px; padding:8px" onkeydown="if(event.key==='Enter')addSubtopic(${i})" />
+              <button class="btn-primary" style="padding:4px 12px; font-size:11px" onclick="addSubtopic(${i})">Add</button>
+            </div>
+          </div>
+        </div>
+      `;
+            container.appendChild(li);
+          });
+        }
+
+        function generateReport() {
+          let out = "PSET TRACKER SUMMARY\n====================\n\n";
+          state.order.forEach((code) => {
+            const c = state.courses[code];
+            if (c.psets.length === 0) return;
+            const done = c.psets.filter((p) => p.completed).length;
+            out += `[${code}] ${c.title} (${done}/${c.psets.length})\n`;
+            c.psets.forEach((p, i) => {
+              const num = String(i + 1).padStart(2, "0");
+              out += `  ${p.completed ? "[✓]" : "[ ]"} PSET#${num} - ${p.title}\n`;
+              p.subtopics.forEach((s) => (out += `    - ${s}\n`));
+            });
+            out += "\n";
+          });
+          return out.trim();
+        }
+
+        function generateTree() {
+          let out = "";
+          state.order.forEach((code) => {
+            const c = state.courses[code];
+            if (c.psets.length === 0) return;
+            out += `${code}/\n`;
+            c.psets.forEach((p, pIdx) => {
+              const isLastPset = pIdx === c.psets.length - 1;
+              const psetPrefix = isLastPset ? " └─ " : " ├─ ";
+              const num = String(pIdx + 1).padStart(2, "0");
+              out += `${psetPrefix}PSET#${num} - ${p.title}\n`;
+
+              const subPrefixBase = isLastPset ? "        " : " │      ";
+              p.subtopics.forEach((s, sIdx) => {
+                const isLastSub = sIdx === p.subtopics.length - 1;
+                const subPrefix = isLastSub ? "└─ " : "├─ ";
+                out += `${subPrefixBase}${subPrefix}${s}\n`;
+              });
+            });
+            out += "\n";
+          });
+          return out.trim();
+        }
+
+        window.previewAll = function (type) {
+          const content = type === "tree" ? generateTree() : generateReport();
+          document.getElementById("preview-title").innerText =
+            type === "tree" ? "Neural Tree View" : "Report Summary";
+          document.getElementById("preview-content").innerText =
+            content || "No data available";
+          document.getElementById("preview-modal").classList.remove("hidden");
+        };
+
+        window.copyAll = function (type) {
+          const content = type === "tree" ? generateTree() : generateReport();
+          if (!content) return toast("No data to copy");
+          navigator.clipboard
+            .writeText(content)
+            .then(() =>
+              toast(type === "tree" ? "Neural Tree Copied" : "Report Copied"),
+            );
+        };
+
+        window.copyFromPreview = function () {
+          const content = document.getElementById("preview-content").innerText;
+          navigator.clipboard.writeText(content).then(() => {
+            toast("Copied to Clipboard");
+            document.getElementById("preview-modal").classList.add("hidden");
+          });
+        };
+
+        window.exportData = function () {
+          const blob = new Blob([JSON.stringify(state)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "pset_tracker_backup.json";
+          a.click();
+        };
+
+        window.importData = function (input) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              state = JSON.parse(e.target.result);
+              saveAndRender();
+              toast("Imported Success");
+            } catch (err) {
+              toast("Import Failed");
+            }
+          };
+          reader.readAsText(input.files[0]);
+        };
+
+        function toast(msg) {
+          const t = document.getElementById("toast");
+          document.getElementById("toast-msg").innerText = msg;
+          t.classList.add("show");
+          setTimeout(() => t.classList.remove("show"), 3000);
+        }
+
+        window.onload = () => {
+          initCurriculum();
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) state = JSON.parse(saved);
+          render();
+
+          document.getElementById("menu-btn").onclick = (e) => {
+            e.stopPropagation();
+            document.getElementById("main-menu").classList.toggle("hidden");
+          };
+          document.addEventListener("click", () =>
+            document.getElementById("main-menu").classList.add("hidden"),
+          );
+
+          document.getElementById("course-input").onkeydown = (e) => {
+            if (e.key === "Enter") addCourse();
+          };
+          document.getElementById("pset-input").onkeydown = (e) => {
+            if (e.key === "Enter") addPset();
+          };
+        };
+      })(window);
+    </script>
+  </body>
+</html>
