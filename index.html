@@ -7,6 +7,7 @@
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap"
       rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
       *,
       *::before,
@@ -553,6 +554,169 @@
         font-style: italic;
       }
 
+      /* ── Share Card Template ── */
+      #share-card-stage {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: -1000;
+        pointer-events: none;
+      }
+      .share-card-container {
+        width: 1080px;
+        min-height: 1350px;
+        height: auto;
+        background: #08080a;
+        padding: 100px 80px;
+        color: #fff;
+        font-family: "DM Mono", monospace;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #1f1f24;
+        position: relative;
+      }
+      .share-card-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: 
+          radial-gradient(circle at 0% 0%, rgba(127, 255, 138, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 100% 100%, rgba(127, 255, 138, 0.03) 0%, transparent 50%);
+        z-index: 0;
+      }
+      .share-card-header {
+        position: relative;
+        z-index: 1;
+        border-bottom: 1px solid #1f1f24;
+        padding-bottom: 50px;
+        margin-bottom: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .share-card-meta {
+        font-size: 14px;
+        letter-spacing: 0.4em;
+        color: #6b6b7a;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .share-card-brand {
+        font-size: 56px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        color: #fff;
+      }
+      .share-card-brand span { color: #7fff8a; }
+
+      .share-report-body {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 60px;
+        flex: 1;
+      }
+      .share-course-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .share-course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid #1f1f24;
+        padding-bottom: 15px;
+      }
+      .share-course-code {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      .share-course-title {
+        font-size: 18px;
+        color: #6b6b7a;
+      }
+      
+      .share-course-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+
+      .share-progress-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .share-progress-label {
+        font-size: 12px;
+        color: #4a4a55;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+      }
+      .share-progress-val {
+        font-size: 32px;
+        font-weight: 600;
+      }
+      .share-progress-bg {
+        height: 4px;
+        background: #1f1f24;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .share-progress-fill {
+        height: 100%;
+      }
+
+      .share-task-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .share-task-item {
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #fff;
+      }
+      .share-task-check {
+        color: #7fff8a;
+        flex-shrink: 0;
+      }
+      .share-task-empty {
+        width: 14px;
+        height: 14px;
+        border: 1px solid #2a2a2f;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+
+      .share-card-footer {
+        position: relative;
+        z-index: 1;
+        margin-top: 100px;
+        padding-top: 40px;
+        border-top: 1px solid #1f1f24;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .share-card-footer-info {
+        font-size: 13px;
+        color: #4a4a55;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        line-height: 1.8;
+      }
+      .share-card-watermark {
+        font-size: 20px;
+        color: #7fff8a;
+        font-weight: 500;
+      }
+
       /* ── Action bar ── */
       #action-bar {
         position: fixed;
@@ -580,7 +744,7 @@
       }
 
       .btn-main {
-        flex: 1 1 calc(50% - 8px); /* Two per row on mobile */
+        flex: 1 1 calc(33.33% - 8px); /* Three per row on mobile or 2 depending on space */
         padding: 12px 8px;
         font-size: 10px;
         letter-spacing: 0.05em;
@@ -823,7 +987,7 @@
           <h1>PSET Tracker</h1>
           <div class="tagline-box">
             <div class="version-row">
-              <div class="version">v1.0.0-rc.3</div>
+              <div class="version">v1.1.0-alpha.3</div>
               <div class="made-by" onclick="openAuthorModal()">by @chqrlzz</div>
             </div>
             <div class="tagline">PSET<span>_</span>TRACK</div>
@@ -1088,6 +1252,7 @@
     </div>
 
     <div id="action-bar">
+      <button class="btn-main btn-secondary" onclick="generateShareCard()">Share Poster</button>
       <button class="btn-main btn-secondary" onclick="previewAll('report')"
         >Review Progress</button
       >
@@ -1116,6 +1281,8 @@
         >Copy Active Structure</button
       >
     </div>
+
+    <div id="share-card-stage"></div>
 
     <!-- Copy Preview Overlay (1s) -->
     <div id="copy-preview-overlay">
@@ -1961,6 +2128,129 @@
           const content = document.getElementById("preview-content").innerText;
           copyToClipboardWithPreview(content);
           document.getElementById("preview-modal").classList.add("hidden");
+        };
+
+        window.generateShareCard = function () {
+          if (state.order.length === 0) return toast("No courses to share");
+          toast("Generating HD Report...");
+          
+          const stage = document.getElementById("share-card-stage");
+          stage.innerHTML = ""; 
+
+          const card = document.createElement("div");
+          card.className = "share-card-container";
+          
+          const now = new Date().toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric' 
+          });
+
+          const currentHost = window.location.host || "pset-tracker.local";
+
+          card.innerHTML = `
+            <div class="share-card-header">
+              <div>
+                <div class="share-card-meta">Neural Syllabus Report // ${now}</div>
+                <div class="share-card-brand">PSET TRACKER</div>
+              </div>
+              <div style="text-align: right">
+                <div class="share-card-meta">Data Integrity</div>
+                <div style="color: #7fff8a; font-size: 14px; font-weight: 600;">VERIFIED_NODE</div>
+              </div>
+            </div>
+            
+            <div class="share-report-body">
+              ${state.order.map(code => {
+                const c = state.courses[code];
+                const color = COLORS.find(col => col.id === c.color) || COLORS[0];
+                const total = c.psets.length;
+                const done = c.psets.filter(p => p.completed).length;
+                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                
+                const psetItems = c.psets.map((p, pi) => `
+                  <div class="share-task-item">
+                    ${p.completed 
+                      ? `<svg class="share-task-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>` 
+                      : `<div class="share-task-empty"></div>`}
+                    PSET#${String(pi + 1).padStart(2, '0')} - ${p.title}
+                  </div>
+                `).join("");
+
+                return `
+                  <div class="share-course-section">
+                    <div class="share-course-header">
+                      <div class="share-course-code" style="color: ${color.hex}">${code}</div>
+                      <div class="share-course-title">${c.title}</div>
+                    </div>
+                    <div class="share-course-content">
+                      <div class="share-progress-container">
+                        <div class="share-progress-label">Current Completion</div>
+                        <div class="share-progress-val" style="color: ${color.hex}">${pct}%</div>
+                        <div class="share-progress-bg">
+                          <div class="share-progress-fill" style="width: ${pct}%; background: ${color.hex}"></div>
+                        </div>
+                      </div>
+                      <div class="share-task-list">
+                        ${psetItems}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <div class="share-card-footer">
+              <div class="share-card-footer-info">
+                Instance Node: ${currentHost}<br>
+                Protocol: Secure Offline Ledger // v1.1.0-alpha.2
+              </div>
+              <div class="share-card-watermark">@chqrlzz</div>
+            </div>
+          `;
+
+          stage.appendChild(card);
+
+          setTimeout(() => {
+            html2canvas(card, {
+              scale: 2,
+              backgroundColor: "#08080a",
+              useCORS: true,
+              logging: false,
+              windowWidth: 1080
+            }).then(canvas => {
+              canvas.toBlob(blob => {
+                const fileName = `PSET_Tracker_Report_${new Date().getTime()}.png`;
+                const file = new File([blob], fileName, { type: "image/png" });
+                
+                // Native Share Check
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                  navigator.share({
+                    files: [file],
+                    title: 'My PSET Tracker Report',
+                    text: 'Neural Syllabus Report // Local Ledger Active'
+                  }).then(() => {
+                    stage.innerHTML = "";
+                    toast("Shared Report");
+                  }).catch(err => {
+                    console.error("Share failed", err);
+                    stage.innerHTML = "";
+                  });
+                } else {
+                  // Fallback to Download
+                  const link = document.createElement("a");
+                  link.download = fileName;
+                  link.href = canvas.toDataURL("image/png");
+                  link.click();
+                  stage.innerHTML = "";
+                  toast("Download Exported");
+                }
+              }, "image/png");
+            }).catch(err => {
+              console.error(err);
+              toast("Export Failed");
+            });
+          }, 200);
         };
 
         window.exportData = function () {
