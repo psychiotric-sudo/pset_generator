@@ -71,13 +71,59 @@
         --accent: #b58900;
       }
 
-      /* ── Drag and Drop v3 ── */
-      .draggable-item {
-        position: relative;
+      /* ── Drag and Drop v10 (Omni-Motion) ── */
+      .dragging {
+        display: none !important;
+      }
+
+      .drag-ghost {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.99;
+        background: var(--surface);
+        border: 2px solid #7fff8a;
+        border-radius: var(--radius);
+        overflow: hidden;
+        /* Ultimate Lift */
+        box-shadow:
+          0 0 0 1px rgba(127, 255, 138, 0.3),
+          0 40px 80px -10px rgba(0, 0, 0, 0.9),
+          0 20px 40px -20px rgba(0, 0, 0, 1),
+          0 0 50px rgba(127, 255, 138, 0.2);
+        will-change: transform, top, left;
+        /* Removed transform transition for absolute 1:1 follow-behavior */
         transition:
-          transform 0.2s cubic-bezier(0.2, 0, 0, 1),
-          opacity 0.2s;
-        touch-action: none; /* Critical for mobile touch-drag */
+          box-shadow 0.3s ease,
+          opacity 0.2s ease;
+      }
+
+      .drop-placeholder {
+        opacity: 0.3;
+        border: 2px solid #7fff8a !important;
+        background: rgba(127, 255, 138, 0.1) !important;
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+        pointer-events: none;
+        box-shadow: 0 0 15px rgba(127, 255, 138, 0.1);
+        display: block !important;
+        transform: scale(0.98);
+      }
+
+      .drop-placeholder * {
+        visibility: visible !important;
+      }
+
+      .pset-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .pset-block {
+        position: relative;
+        margin-bottom: 10px;
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
       }
 
       .drag-handle {
@@ -103,51 +149,6 @@
         border-radius: 50%;
       }
 
-      .dragging {
-        opacity: 0.3 !important;
-        transform: scale(0.98);
-        filter: grayscale(0.5);
-      }
-
-      /* Mobile Ghost */
-      .drag-ghost {
-        position: fixed;
-        pointer-events: none;
-        z-index: 5000;
-        opacity: 0.8;
-        transform: scale(0.95);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        background: var(--surface);
-        border: 1px solid var(--accent);
-        border-radius: var(--radius);
-      }
-
-      /* Neon Snap Preview */
-      .drag-over::before {
-        content: "";
-        position: absolute;
-        top: -8px;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--accent);
-        border-radius: 2px;
-        box-shadow: 0 0 15px var(--accent);
-        animation: neonPulse 1s infinite alternate;
-        z-index: 200;
-      }
-
-      @keyframes neonPulse {
-        from {
-          opacity: 0.4;
-          transform: scaleX(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scaleX(1);
-        }
-      }
-
       html,
       body {
         height: 100%;
@@ -160,11 +161,11 @@
         transition:
           background 0.3s,
           color 0.3s;
-        -webkit-user-select: none; /* Prevent text selection during drag */
+        -webkit-user-select: none;
         user-select: none;
       }
       input[type="text"] {
-        user-select: text; /* Allow text input */
+        user-select: text;
       }
 
       #app {
@@ -369,7 +370,7 @@
         color: var(--tab-color, var(--accent));
       }
       .course-tab:hover:not(.active) {
-        border-color: var(--border-hi);
+        border-color: var(--border-hi) !important;
         color: var(--text);
       }
 
@@ -440,18 +441,6 @@
         font-weight: 600;
       }
 
-      /* ── PSET list ── */
-      .pset-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .pset-block {
-        position: relative;
-        /* Removed overflow: hidden to allow snap highlight visibility */
-      }
-
       .pset-card {
         position: relative;
         z-index: 1;
@@ -460,9 +449,9 @@
         border-radius: var(--radius);
         transition: all 0.2s;
         display: flex;
-        flex-direction: column; /* Stack header and subtopics */
+        flex-direction: column;
         align-items: stretch;
-        overflow: hidden; /* Clips subtopics correctly inside the card */
+        overflow: hidden;
       }
       .pset-card.completed {
         border-color: var(--done);
@@ -541,22 +530,35 @@
       .pset-block.expanded .subtopic-panel {
         display: block;
       }
-      .subtopic-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
       .subtopic-item {
         display: flex;
         align-items: center;
         gap: 10px;
         font-size: 13px;
         color: var(--muted);
+        padding: 4px 0;
       }
       .subtopic-text {
         flex: 1;
         font-style: italic;
+        transition:
+          opacity 0.2s,
+          text-decoration 0.2s;
+      }
+      .subtopic-item.completed .subtopic-text {
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+      .sub-check {
+        cursor: pointer;
+        color: var(--muted2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+      }
+      .subtopic-item.completed .sub-check {
+        color: var(--accent);
       }
 
       /* ── Share Card Template ── */
@@ -743,7 +745,7 @@
         border-top: 1px solid var(--border);
         padding: 12px 16px 24px;
         display: flex;
-        flex-wrap: wrap; /* Fix overlapping by allowing wrap */
+        flex-wrap: wrap;
         gap: 8px;
         z-index: 100;
       }
@@ -759,7 +761,7 @@
       }
 
       .btn-main {
-        flex: 1 1 calc(33.33% - 8px); /* Three per row on mobile or 2 depending on space */
+        flex: 1 1 calc(33.33% - 8px);
         padding: 12px 8px;
         font-size: 10px;
         letter-spacing: 0.05em;
@@ -1020,8 +1022,7 @@
           <h1>PSET Tracker</h1>
           <div class="tagline-box">
             <div class="version-row">
-              <div class="version" onclick="openChangelogModal()">v1.1.0-alpha.6</div>
-              <div class="made-by" onclick="openAuthorModal()">by @chqrlzz</div>
+              <div class="version" onclick="openChangelogModal()">v2.1.0</div>
             </div>
             <div class="tagline">PSET<span>_</span>TRACK</div>
           </div>
@@ -1319,7 +1320,7 @@
 
     <div id="share-card-stage"></div>
 
-    <!-- Copy Preview Overlay (1s) -->
+    <!-- Copy Preview Overlay -->
     <div id="copy-preview-overlay">
       <div class="copy-preview-box">
         <div class="copy-preview-header">
@@ -1560,18 +1561,34 @@
             scrollbar-width: thin;
             scrollbar-color: var(--border-hi) transparent;
           ">
-          <!-- v1.1.0 Series -->
-          <div style="margin-bottom: 24px">
+          <div
+            style="
+              margin-bottom: 32px;
+              position: relative;
+              padding-left: 20px;
+              border-left: 2px solid var(--accent);
+            ">
+            <div
+              style="
+                position: absolute;
+                left: -7px;
+                top: 0;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--accent);
+                box-shadow: 0 0 10px var(--accent);
+              "></div>
             <div
               style="
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                margin-bottom: 8px;
+                margin-bottom: 12px;
               ">
               <span
-                style="font-size: 12px; font-weight: 700; color: var(--text)"
-                >v1.1.0-alpha.5</span
+                style="font-size: 13px; font-weight: 700; color: var(--text)"
+                >v2.1.0</span
               >
               <span
                 style="
@@ -1582,289 +1599,91 @@
                   border-radius: 4px;
                   text-transform: uppercase;
                 "
-                >Current</span
+                >Current Build</span
               >
             </div>
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Reverted share function to automatic HD download<br />
-              • Dedicated Changelog interface subsystem<br />
-              • Standardized UI radius for balanced aesthetics<br />
-              • Interactive version numbering in header
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
+              <div style="margin-bottom: 8px"
+                ><strong style="color: var(--text)">LOGIC:</strong> Implemented
+                Subtopic Lock Logic to prevent unchecking main tasks when
+                sub-progress is finalized.</div
+              >
+              <div style="margin-bottom: 8px"
+                ><strong style="color: var(--text)">MOTION:</strong> Upgraded to
+                Omni-Motion v10 with weightless XY dragging and
+                hyper-elevation.</div
+              >
+              <div style="margin-bottom: 8px"
+                ><strong style="color: var(--text)">REPORTS:</strong> Integrated
+                weighted progress tracking across all dashboards and share
+                cards.</div
+              >
             </div>
           </div>
-
-          <div style="margin-bottom: 24px">
+          <div
+            style="
+              margin-bottom: 32px;
+              position: relative;
+              padding-left: 20px;
+              border-left: 2px solid var(--border-hi);
+            ">
+            <div
+              style="
+                position: absolute;
+                left: -6px;
+                top: 0;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--surface3);
+                border: 2px solid var(--border-hi);
+              "></div>
             <div
               style="
                 font-size: 12px;
                 font-weight: 700;
                 color: var(--text);
-                margin-bottom: 8px;
+                margin-bottom: 12px;
               "
-              >v1.1.0-alpha.4</div
+              >v2.0.0 - Omni Update</div
             >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Implemented "Generated by {host}" metadata caption<br />
-              • Enhanced social sharing telemetry and metadata
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
+              • Total XY movement freedom during drag<br />
+              • Subtopic-weighted progress intelligence
             </div>
           </div>
 
-          <div style="margin-bottom: 24px">
+          <div
+            style="
+              margin-bottom: 32px;
+              position: relative;
+              padding-left: 20px;
+              border-left: 2px solid var(--border-hi);
+            ">
+            <div
+              style="
+                position: absolute;
+                left: -6px;
+                top: 0;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--surface3);
+                border: 2px solid var(--border-hi);
+              "></div>
             <div
               style="
                 font-size: 12px;
                 font-weight: 700;
                 color: var(--text);
-                margin-bottom: 8px;
+                margin-bottom: 12px;
               "
-              >v1.1.0-alpha.3</div
+              >v1.2.0 - Syllabus Engine</div
             >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Integrated html2canvas for high-fidelity exports<br />
-              • Progress visualization overhaul with percentage tracking
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v1.1.0-alpha.1</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Alpha branch for experimental share features<br />
-              • Refactored modal animation system
-            </div>
-          </div>
-
-          <!-- v1.0.0 Series -->
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--accent);
-                margin-bottom: 8px;
-              "
-              >v1.0.0 - STABLE</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Official stable release of PSET Tracker<br />
-              • Full curriculum database integration<br />
-              • Advanced backup and recovery tools
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.9.8-rc.1</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Release Candidate: Final UI polishing<br />
-              • Keyboard shortcut optimizations
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.9.5</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Added support for multi-line PSET descriptions<br />
-              • Performance improvements for large datasets
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.9.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Hierarchy Copy System (Tree View)<br />
-              • Modal-based data previewing
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.8.2</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Fixed local storage sync issues on mobile Safari<br />
-              • Refined typography for better readability
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.7.5</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Introduced "Review Progress" summary screen<br />
-              • Enhanced status icons (Checks/Empty states)
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.6.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Full curriculum lookup table for Engineering codes<br />
-              • Search-as-you-type course adding
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.5.2</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Custom course editing and title modification<br />
-              • Toast notification system implementation
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.4.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Multi-theme support core (Dark/Light/Sepia)<br />
-              • CSS Variable-based styling overhaul
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.3.5</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Persistence Layer: LocalStorage integration<br />
-              • Data export/import as JSON
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.3.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Course reordering engine (Drag & Drop)<br />
-              • Visual drag handles and haptic feedback
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.2.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Color tagging system for course categorization<br />
-              • Dynamic UI accent color updates
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.1.5</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Optimized layout for mobile devices<br />
-              • Course deletion safety checks
-            </div>
-          </div>
-
-          <div style="margin-bottom: 24px">
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 8px;
-              "
-              >v0.1.0</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
-              • Initial Prototype Launch<br />
-              • Basic course and task creation<br />
-              • Foundation of the PSET tracking logic
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
+              • Subtopics support individual completion toggles<br />
+              • HD share cards include detailed subtopic progress<br />
+              • UI refinement and theme stabilization
             </div>
           </div>
         </div>
@@ -1952,6 +1771,25 @@
         let state = { courses: {}, order: [], active: null, theme: "" };
 
         // --- Internal Helpers ---
+        function getCourseProgress(course) {
+          if (!course || !course.psets || course.psets.length === 0)
+            return { total: 0, done: 0, pct: 0 };
+          let totalUnits = 0;
+          let doneUnits = 0;
+          course.psets.forEach((p) => {
+            if (p.subtopics && p.subtopics.length > 0) {
+              totalUnits += p.subtopics.length;
+              doneUnits += p.subtopics.filter((s) => s.completed).length;
+            } else {
+              totalUnits += 1;
+              if (p.completed) doneUnits += 1;
+            }
+          });
+          const pct =
+            totalUnits === 0 ? 0 : Math.round((doneUnits / totalUnits) * 100);
+          return { total: totalUnits, done: doneUnits, pct };
+        }
+
         function toTitleCase(str) {
           if (!str) return "";
           const smallWords =
@@ -1975,19 +1813,16 @@
           document.getElementById("author-modal").classList.remove("hidden");
           document.getElementById("main-menu").classList.add("hidden");
         };
-
         window.openChangelogModal = function () {
           document.getElementById("changelog-modal").classList.remove("hidden");
           document.getElementById("main-menu").classList.add("hidden");
         };
-
         window.setTheme = function (theme) {
           document.body.className = theme;
           state.theme = theme;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         };
 
-        // --- Initialize Datalist ---
         function initCurriculum() {
           const list = document.getElementById("curriculum-list");
           Object.keys(CURRICULUM).forEach((code) => {
@@ -2002,9 +1837,7 @@
           const input = document.getElementById("course-input");
           const code = input.value.trim().toUpperCase();
           if (!code) return;
-
           const title = CURRICULUM[code] || toTitleCase(code);
-
           if (!state.courses[code]) {
             state.courses[code] = {
               title: title,
@@ -2013,7 +1846,6 @@
             };
             state.order.unshift(code);
           }
-
           state.active = code;
           input.value = "";
           saveAndRender();
@@ -2052,13 +1884,11 @@
           const input = document.getElementById("pset-input");
           const title = input.value.trim();
           if (!title || !state.active) return;
-
           state.courses[state.active].psets.push({
             title: toTitleCase(title),
             completed: false,
             subtopics: [],
           });
-
           input.value = "";
           saveAndRender();
           input.focus();
@@ -2066,6 +1896,16 @@
 
         window.togglePsetDone = function (idx) {
           const pset = state.courses[state.active].psets[idx];
+          const hasSubtopics = pset.subtopics && pset.subtopics.length > 0;
+
+          if (hasSubtopics && pset.completed) {
+            const allDone = pset.subtopics.every((s) => s.completed);
+            if (allDone) {
+              toast("Uncheck a subtopic to undo this task");
+              return;
+            }
+          }
+
           pset.completed = !pset.completed;
           saveAndRender();
         };
@@ -2093,10 +1933,41 @@
           const input = document.getElementById(`sub-input-${psetIdx}`);
           const text = input.value.trim();
           if (!text) return;
-          state.courses[state.active].psets[psetIdx].subtopics.push(
-            toTitleCase(text),
-          );
+          const pset = state.courses[state.active].psets[psetIdx];
+          if (!pset.subtopics) {
+            pset.subtopics = [];
+          }
+          pset.subtopics.push({
+            title: toTitleCase(text),
+            completed: false,
+          });
+          // New subtopic is incomplete, so the whole PSET is now incomplete
+          pset.completed = false;
           input.value = "";
+          saveAndRender();
+          if (!("ontouchstart" in window || navigator.maxTouchPoints > 0)) {
+            const nextInput = document.getElementById(`sub-input-${psetIdx}`);
+            if (nextInput) nextInput.focus();
+          }
+        };
+
+        window.toggleSubtopicDone = function (psetIdx, subIdx) {
+          const pset = state.courses[state.active].psets[psetIdx];
+          let sub = pset.subtopics[subIdx];
+          if (typeof sub === "string") {
+            sub = { title: sub, completed: false };
+            pset.subtopics[subIdx] = sub;
+          }
+          sub.completed = !sub.completed;
+
+          // Auto-mark parent PSET as done if all subtopics are completed
+          const allDone = pset.subtopics.every((s) => s.completed);
+          if (allDone) {
+            pset.completed = true;
+          } else if (!sub.completed) {
+            // If at least one subtopic is unchecked, the main topic should be unchecked
+            pset.completed = false;
+          }
           saveAndRender();
         };
 
@@ -2118,17 +1989,11 @@
           document
             .getElementById("empty-state")
             .classList.toggle("hidden", hasCourses);
-
-          // Show/Hide Current Tree button
           const currentBtn = document.getElementById("btn-copy-current");
-          if (state.active && state.courses[state.active]) {
+          if (state.active && state.courses[state.active])
             currentBtn.classList.remove("hidden");
-          } else {
-            currentBtn.classList.add("hidden");
-          }
-
+          else currentBtn.classList.add("hidden");
           renderTabs();
-
           if (state.active && state.courses[state.active]) {
             document.getElementById("pset-section").style.display = "block";
             renderCourseHeader();
@@ -2138,154 +2003,19 @@
           }
         }
 
-        // --- Drag and Drop Helper v3 ---
-        let dragInfo = {
-          type: null,
-          index: null,
-          ghost: null,
-          targetIdx: null,
-          startY: 0,
-          startX: 0,
-        };
-
-        function initTouchDrag(el, type, index) {
-          el.ontouchstart = (e) => {
-            const handle =
-              e.target.closest(".drag-handle") ||
-              (type === "course" ? el : null);
-            if (!handle) return;
-
-            // For PSETs, we only drag if handle is used
-            if (type === "pset" && !e.target.closest(".drag-handle")) return;
-
-            const touch = e.touches[0];
-            dragInfo.type = type;
-            dragInfo.index = index;
-            dragInfo.startY = touch.clientY;
-            dragInfo.startX = touch.clientX;
-
-            // Create Ghost
-            const ghost = el.cloneNode(true);
-            ghost.classList.add("drag-ghost");
-            ghost.style.width = el.offsetWidth + "px";
-            ghost.style.top = touch.clientY - 20 + "px";
-            ghost.style.left = touch.clientX - 20 + "px";
-            document.body.appendChild(ghost);
-            dragInfo.ghost = ghost;
-
-            el.classList.add("dragging");
-            e.preventDefault();
-          };
-        }
-
-        window.addEventListener(
-          "touchmove",
-          (e) => {
-            if (!dragInfo.ghost) return;
-            const touch = e.touches[0];
-            dragInfo.ghost.style.top = touch.clientY - 20 + "px";
-            dragInfo.ghost.style.left = touch.clientX - 20 + "px";
-
-            // Find drop target
-            const target = document.elementFromPoint(
-              touch.clientX,
-              touch.clientY,
-            );
-            const block = target ? target.closest(".draggable-item") : null;
-
-            // Clear previous highlights
-            document
-              .querySelectorAll(".drag-over")
-              .forEach((el) => el.classList.remove("drag-over"));
-
-            if (block && block.dataset.type === dragInfo.type) {
-              block.classList.add("drag-over");
-              dragInfo.targetIdx = parseInt(block.dataset.index);
-            } else {
-              dragInfo.targetIdx = null;
-            }
-          },
-          { passive: false },
-        );
-
-        window.addEventListener("touchend", () => {
-          if (!dragInfo.ghost) return;
-
-          document.body.removeChild(dragInfo.ghost);
-          document
-            .querySelectorAll(".dragging")
-            .forEach((el) => el.classList.remove("dragging"));
-          document
-            .querySelectorAll(".drag-over")
-            .forEach((el) => el.classList.remove("drag-over"));
-
-          if (
-            dragInfo.targetIdx !== null &&
-            dragInfo.targetIdx !== dragInfo.index
-          ) {
-            if (dragInfo.type === "course") {
-              const temp = state.order[dragInfo.index];
-              state.order.splice(dragInfo.index, 1);
-              state.order.splice(dragInfo.targetIdx, 0, temp);
-            } else if (dragInfo.type === "pset") {
-              const course = state.courses[state.active];
-              const temp = course.psets[dragInfo.index];
-              course.psets.splice(dragInfo.index, 1);
-              course.psets.splice(dragInfo.targetIdx, 0, temp);
-            }
-            saveAndRender();
-          }
-
-          dragInfo.ghost = null;
-          dragInfo.type = null;
-          dragInfo.targetIdx = null;
-        });
-
         function renderTabs() {
           const container = document.getElementById("course-tabs");
           container.innerHTML = "";
-          state.order.forEach((code, index) => {
+          state.order.forEach((code) => {
             const c = state.courses[code];
             const color = COLORS.find((col) => col.id === c.color) || COLORS[0];
             const tab = document.createElement("div");
-            tab.className = `course-tab draggable-item ${state.active === code ? "active" : ""}`;
-            tab.dataset.index = index;
-            tab.dataset.type = "course";
-            tab.draggable = true;
+            tab.className = `course-tab ${state.active === code ? "active" : ""}`;
             if (state.active === code) {
               tab.style.setProperty("--tab-color", color.hex);
               tab.style.setProperty("--tab-dim", color.dim);
             }
             tab.onclick = () => setActive(code);
-
-            // Touch DnD
-            initTouchDrag(tab, "course", index);
-
-            // Desktop DnD
-            tab.ondragstart = (e) => {
-              tab.classList.add("dragging");
-              window.dragSource = { type: "course", index: index };
-            };
-            tab.ondragend = () => tab.classList.remove("dragging");
-            tab.ondragover = (e) => {
-              e.preventDefault();
-              if (window.dragSource && window.dragSource.type === "course")
-                tab.classList.add("drag-over");
-            };
-            tab.ondragleave = () => tab.classList.remove("drag-over");
-            tab.ondrop = (e) => {
-              e.preventDefault();
-              tab.classList.remove("drag-over");
-              if (window.dragSource && window.dragSource.type === "course") {
-                const fromIdx = window.dragSource.index;
-                if (fromIdx === index) return;
-                const temp = state.order[fromIdx];
-                state.order.splice(fromIdx, 1);
-                state.order.splice(index, 0, temp);
-                saveAndRender();
-              }
-            };
-
             tab.innerHTML = `<span class="tab-dot"></span>${code}`;
             container.appendChild(tab);
           });
@@ -2297,16 +2027,10 @@
           const headerText = document.getElementById("course-header-text");
           headerText.innerHTML = `<span>${state.active}</span> — ${course.title}`;
           headerText.style.setProperty("--course-color", color.hex);
-
-          // Progress
-          const total = course.psets.length;
-          const done = course.psets.filter((p) => p.completed).length;
-          const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-          document.getElementById("progress-bar").style.width = `${percent}%`;
+          const prog = getCourseProgress(course);
+          document.getElementById("progress-bar").style.width = `${prog.pct}%`;
           document.getElementById("progress-text").innerText =
-            `${done}/${total} Completed (${percent}%)`;
-
-          // Color picker
+            `${prog.done}/${prog.total} Tasks Done (${prog.pct}%)`;
           const picker = document.getElementById("color-picker-row");
           picker.innerHTML = "";
           COLORS.forEach((c) => {
@@ -2322,118 +2046,215 @@
           const container = document.getElementById("pset-list");
           container.innerHTML = "";
           const course = state.courses[state.active];
-
           course.psets.forEach((p, i) => {
             const hasSubtopics = p.subtopics && p.subtopics.length > 0;
             const li = document.createElement("li");
-            li.className = `pset-block draggable-item ${hasSubtopics ? "expanded" : ""}`;
+            li.className = `pset-block ${hasSubtopics ? "expanded" : ""}`;
             li.dataset.index = i;
-            li.dataset.type = "pset";
-            li.draggable = false;
-
-            // Touch DnD
-            initTouchDrag(li, "pset", i);
-
-            // Desktop DnD
-            li.onmousedown = (e) => {
-              if (e.target.closest(".drag-handle")) li.draggable = true;
-              else li.draggable = false;
-            };
-            li.ondragstart = (e) => {
-              if (!li.draggable) {
-                e.preventDefault();
-                return;
-              }
-              li.classList.add("dragging");
-              window.dragSource = { type: "pset", index: i };
-              e.dataTransfer.setDragImage(li, 20, 20);
-            };
-            li.ondragend = () => {
-              li.classList.remove("dragging");
-              li.draggable = false;
-            };
-            li.ondragover = (e) => {
-              e.preventDefault();
-              if (window.dragSource && window.dragSource.type === "pset")
-                li.classList.add("drag-over");
-            };
-            li.ondragleave = () => li.classList.remove("drag-over");
-            li.ondrop = (e) => {
-              e.preventDefault();
-              li.classList.remove("drag-over");
-              if (window.dragSource && window.dragSource.type === "pset") {
-                const fromIdx = window.dragSource.index;
-                if (fromIdx === i) return;
-                const temp = course.psets[fromIdx];
-                course.psets.splice(fromIdx, 1);
-                course.psets.splice(i, 0, temp);
-                saveAndRender();
-              }
-            };
-
             li.innerHTML = `
-        <div class="pset-card ${p.completed ? "completed" : ""}">
-          <div class="pset-main-row">
-            <div class="drag-handle">
-              <div></div><div></div>
-              <div></div><div></div>
-              <div></div><div></div>
-            </div>
-            <div class="pset-item">
-              <div class="pset-number">PSET#${i + 1}</div>
-              <div class="pset-title" title="${p.title}">${p.title}</div>
-              <div class="pset-actions">
-                <button class="action-btn done" onclick="togglePsetDone(${i})">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-                <button class="action-btn" onclick="toggleSubtopics(${i})">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <button class="action-btn" onclick="editPsetTitle(${i})">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button class="action-btn delete" onclick="deletePset(${i})">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="subtopic-panel">
-            <div class="subtopic-list">
-              ${p.subtopics
-                .map(
-                  (s, si) => `
-                <div class="subtopic-item">
-                  <span style="color:var(--muted2)">└</span>
-                  <span class="subtopic-text">${s}</span>
-                  <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${i}, ${si})">✕</button>
+              <div class="pset-card ${p.completed ? "completed" : ""}">
+                <div class="pset-main-row">
+                  <div class="drag-handle"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                  <div class="pset-item">
+                    <div class="pset-number">PSET#${i + 1}</div>
+                    <div class="pset-title">${p.title}</div>
+                    <div class="pset-actions">
+                      <button class="action-btn done" onclick="togglePsetDone(${i})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+                      <button class="action-btn" onclick="toggleSubtopics(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+                      <button class="action-btn" onclick="editPsetTitle(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                      <button class="action-btn delete" onclick="deletePset(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                  </div>
                 </div>
-              `,
-                )
-                .join("")}
-            </div>
-            <div class="input-group" style="padding:0; border:none; background:var(--surface3)">
-              <input type="text" id="sub-input-${i}" placeholder="Add subtopic..." style="font-size:12px; padding:8px" onkeydown="if(event.key==='Enter')addSubtopic(${i})" />
-              <button class="btn-primary" style="padding:4px 12px; font-size:11px" onclick="addSubtopic(${i})">Add</button>
-            </div>
-          </div>
-        </div>
-      `;
+                <div class="subtopic-panel">
+                  <div class="subtopic-list">
+                    ${(p.subtopics || [])
+                      .map((s, si) => {
+                        const subObj =
+                          typeof s === "string"
+                            ? { title: s, completed: false }
+                            : s;
+                        return `<div class="subtopic-item ${subObj.completed ? "completed" : ""}">
+                        <span class="sub-check" onclick="toggleSubtopicDone(${i}, ${si})">${subObj.completed ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : '<div style="width:10px; height:10px; border:1px solid var(--muted2); border-radius:2px"></div>'}</span>
+                        <span class="subtopic-text">${subObj.title}</span>
+                        <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${i}, ${si})">✕</button>
+                      </div>`;
+                      })
+                      .join("")}
+                  </div>
+                  <div class="input-group" style="padding:0; border:none; background:var(--surface3)">
+                    <input type="text" id="sub-input-${i}" placeholder="Add subtopic..." style="font-size:12px; padding:8px" onkeydown="if(event.key==='Enter')addSubtopic(${i})">
+                    <button class="btn-primary" style="padding:4px 12px; font-size:11px" onclick="addSubtopic(${i})">Add</button>
+                  </div>
+                </div>
+              </div>
+            `;
             container.appendChild(li);
+            initUnifiedDrag(li, i);
           });
         }
 
+        // --- Drag and Drop Engine v9 (Hyper-Elevation) ---
+        let dragCtx = {
+          active: false,
+          index: null,
+          ghost: null,
+          placeholder: null,
+          initialX: 0,
+          initialY: 0,
+        };
+
+        function initUnifiedDrag(el, index) {
+          const handle = el.querySelector(".drag-handle");
+
+          const startDrag = (e) => {
+            const touch = e.type === "touchstart" ? e.touches[0] : e;
+            if (e.type === "mousedown" && e.button !== 0) return;
+
+            dragCtx.active = true;
+            dragCtx.index = index;
+            dragCtx.initialX = touch.clientX;
+            dragCtx.initialY = touch.clientY;
+
+            // Ghost - Elevated High-Fidelity Clone
+            dragCtx.ghost = el.cloneNode(true);
+            dragCtx.ghost.classList.add("drag-ghost");
+            dragCtx.ghost.style.width = el.offsetWidth + "px";
+            dragCtx.ghost.style.height = el.offsetHeight + "px";
+
+            const rect = el.getBoundingClientRect();
+            dragCtx.ghost.style.top = rect.top + "px";
+            dragCtx.ghost.style.left = rect.left + "px";
+            document.body.appendChild(dragCtx.ghost);
+
+            // Placeholder - Preview Clone
+            dragCtx.placeholder = el.cloneNode(true);
+            dragCtx.placeholder.classList.add("drop-placeholder");
+            dragCtx.placeholder.classList.remove("dragging");
+            dragCtx.placeholder.style.width = el.offsetWidth + "px";
+            dragCtx.placeholder.style.height = el.offsetHeight + "px";
+
+            // Trigger "Lift" Animation
+            requestAnimationFrame(() => {
+              dragCtx.ghost.style.transform = "scale(1.1) rotate(1deg)";
+            });
+
+            el.classList.add("dragging");
+            el.parentNode.insertBefore(dragCtx.placeholder, el);
+
+            if (e.type === "touchstart") e.preventDefault();
+          };
+
+          handle.addEventListener("mousedown", startDrag);
+          handle.addEventListener("touchstart", startDrag, { passive: false });
+        }
+
+        const handleMove = (e) => {
+          if (!dragCtx.active) return;
+          const touch = e.type === "touchmove" ? e.touches[0] : e;
+
+          // Free Movement with Dynamic Tilt
+          const dx = touch.clientX - dragCtx.initialX;
+          const dy = touch.clientY - dragCtx.initialY;
+          const tilt = Math.min(Math.max(dx * 0.05, -3), 3);
+          dragCtx.ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.1) rotate(${1 + tilt}deg)`;
+
+          // Smooth Reordering Detection
+          const list = document.getElementById("pset-list");
+          const items = [
+            ...list.querySelectorAll(
+              ".pset-block:not(.dragging):not(.drop-placeholder)",
+            ),
+          ];
+
+          let targetItem = null;
+          for (const item of items) {
+            const rect = item.getBoundingClientRect();
+            if (touch.clientY < rect.top + rect.height / 2) {
+              targetItem = item;
+              break;
+            }
+          }
+
+          if (targetItem) {
+            if (dragCtx.placeholder.nextSibling !== targetItem) {
+              list.insertBefore(dragCtx.placeholder, targetItem);
+            }
+          } else if (items.length > 0) {
+            const lastRect = items[items.length - 1].getBoundingClientRect();
+            if (touch.clientY > lastRect.bottom - 10) {
+              if (dragCtx.placeholder.nextSibling !== null) {
+                list.appendChild(dragCtx.placeholder);
+              }
+            }
+          }
+
+          if (e.type === "touchmove") e.preventDefault();
+        };
+
+        const handleEnd = () => {
+          if (!dragCtx.active) return;
+
+          const from = dragCtx.index;
+          const list = document.getElementById("pset-list");
+          const children = [...list.children];
+          let to = children.indexOf(dragCtx.placeholder);
+
+          if (to > from) to--;
+
+          // Drop Logic - Smooth "Landing"
+          if (dragCtx.ghost) {
+            dragCtx.ghost.style.transition =
+              "all 0.25s cubic-bezier(0.2, 0, 0, 1)";
+            dragCtx.ghost.style.opacity = "0";
+            dragCtx.ghost.style.transform =
+              dragCtx.ghost.style.transform.replace("scale(1.1)", "scale(0.9)");
+          }
+
+          setTimeout(() => {
+            if (dragCtx.ghost && dragCtx.ghost.parentNode) {
+              document.body.removeChild(dragCtx.ghost);
+            }
+          }, 250);
+
+          if (dragCtx.placeholder) dragCtx.placeholder.remove();
+          document
+            .querySelectorAll(".dragging")
+            .forEach((el) => el.classList.remove("dragging"));
+
+          if (from !== to && to !== -1) {
+            const course = state.courses[state.active];
+            const [temp] = course.psets.splice(from, 1);
+            course.psets.splice(to, 0, temp);
+            saveAndRender();
+          } else {
+            render();
+          }
+
+          dragCtx.active = false;
+        };
+
+        window.addEventListener("mousemove", handleMove);
+        window.addEventListener("touchmove", handleMove, { passive: false });
+        window.addEventListener("mouseup", handleEnd);
+        window.addEventListener("touchend", handleEnd);
+
+        // --- Other functions (Report, Tree, etc) ---
         function generateReport() {
           let out = "PSET TRACKER SUMMARY\n====================\n\n";
           state.order.forEach((code) => {
             const c = state.courses[code];
-            if (c.psets.length === 0) return;
+            if (!c || c.psets.length === 0) return;
             const done = c.psets.filter((p) => p.completed).length;
             out += `[${code}] ${c.title} (${done}/${c.psets.length})\n`;
             c.psets.forEach((p, i) => {
               const num = String(i + 1).padStart(2, "0");
               out += `  ${p.completed ? "[✓]" : "[ ]"} PSET#${num} - ${p.title}\n`;
-              p.subtopics.forEach((s) => (out += `    - ${s}\n`));
+              (p.subtopics || []).forEach((s) => {
+                const subObj =
+                  typeof s === "string" ? { title: s, completed: false } : s;
+                out += `    ${subObj.completed ? " [✓]" : " [ ]"} ${subObj.title}\n`;
+              });
             });
             out += "\n";
           });
@@ -2443,7 +2264,6 @@
         function generateTree(specificCode = null) {
           let out = "";
           const targetOrder = specificCode ? [specificCode] : state.order;
-
           targetOrder.forEach((code) => {
             const c = state.courses[code];
             if (!c || c.psets.length === 0) return;
@@ -2451,14 +2271,14 @@
             c.psets.forEach((p, pIdx) => {
               const isLastPset = pIdx === c.psets.length - 1;
               const psetPrefix = isLastPset ? " └─ " : " ├─ ";
-              const num = String(pIdx + 1).padStart(2, "0");
-              out += `${psetPrefix}PSET#${num} - ${p.title}\n`;
-
+              out += `${psetPrefix}${p.completed ? "[✓] " : ""}${p.title}\n`;
               const subPrefixBase = isLastPset ? "        " : " │      ";
-              p.subtopics.forEach((s, sIdx) => {
+              (p.subtopics || []).forEach((s, sIdx) => {
                 const isLastSub = sIdx === p.subtopics.length - 1;
                 const subPrefix = isLastSub ? "└─ " : "├─ ";
-                out += `${subPrefixBase}${subPrefix}${s}\n`;
+                const subObj =
+                  typeof s === "string" ? { title: s, completed: false } : s;
+                out += `${subPrefixBase}${subPrefix}${subObj.completed ? "[✓] " : ""}${subObj.title}\n`;
               });
             });
             out += "\n";
@@ -2471,9 +2291,8 @@
           const content = document.getElementById("preview-content");
           const title = document.getElementById("preview-title");
           const footer = modal.querySelector("div[style*='border-top']");
-
           if (type === "report") {
-            title.innerText = " Curriculum Dashboard";
+            title.innerText = "Curriculum Dashboard";
             footer.classList.add("hidden");
             content.style.whiteSpace = "normal";
             content.innerHTML = `<div class="summary-grid">${state.order
@@ -2481,43 +2300,33 @@
                 const c = state.courses[code];
                 const color =
                   COLORS.find((col) => col.id === c.color) || COLORS[0];
-                const total = c.psets.length;
-                const donePsets = c.psets.filter((p) => p.completed);
-                const done = donePsets.length;
-                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-
+                const prog = getCourseProgress(c);
                 const completedListHtml =
-                  donePsets.length > 0
-                    ? `<div class="summary-card-done-list">
-                      <div style="font-size: 9px; margin-bottom: 6px; color: var(--muted2)">COMPLETED TASKS</div>
-                      ${donePsets
-                        .map(
-                          (p) => `
-                        <div class="summary-card-done-item">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                          ${p.title}
-                        </div>
-                      `,
-                        )
-                        .join("")}
-                    </div>`
+                  c.psets.length > 0
+                    ? `<div class="summary-card-done-list"><div style="font-size: 9px; margin-bottom: 6px; color: var(--muted2)">TASKS PROGRESS</div>${c.psets
+                        .map((p) => {
+                          const subHtml = (p.subtopics || [])
+                            .map((s) => {
+                              const subObj =
+                                typeof s === "string"
+                                  ? { title: s, completed: false }
+                                  : s;
+                              return `<div style="margin-left: 16px; font-size: 10px; opacity: 0.7; display: flex; align-items: center; gap: 4px;">${subObj.completed ? '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : "○"} ${subObj.title}</div>`;
+                            })
+                            .join("");
+                          return `<div class="summary-card-done-item" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                  <div style="display: flex; align-items: center; gap: 6px; ${p.completed ? "" : "color: var(--muted2)"}">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${p.completed ? "3" : "2"}">
+                      ${p.completed ? '<polyline points="20 6 9 17 4 12"/>' : '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>'}
+                    </svg>
+                    ${p.title}
+                  </div>
+                  ${subHtml}
+                </div>`;
+                        })
+                        .join("")}</div>`
                     : "";
-
-                return `
-                <div class="summary-card" style="--card-color: ${color.hex}">
-                  <div class="summary-card-header">
-                    <div class="summary-card-title">${code}</div>
-                    <div class="summary-card-stat">${done}/${total} COMPLETED</div>
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">${c.title}</div>
-                  <div class="progress-container">
-                    <div class="progress-bar" style="width: ${pct}%; background: ${color.hex}"></div>
-                  </div>
-                  ${completedListHtml}
-                </div>
-              `;
+                return `<div class="summary-card" style="--card-color: ${color.hex}"><div class="summary-card-header"><div class="summary-card-title">${code}</div><div class="summary-card-stat">${prog.done}/${prog.total} TASKS</div></div><div style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">${c.title}</div><div class="progress-container"><div class="progress-bar" style="width: ${prog.pct}%; background: ${color.hex}"></div></div>${completedListHtml}</div>`;
               })
               .join("")}</div>`;
           } else {
@@ -2544,18 +2353,11 @@
 
         function copyToClipboardWithPreview(text) {
           navigator.clipboard.writeText(text).then(() => {
-            showCopyPreview(text);
+            const overlay = document.getElementById("copy-preview-overlay");
+            document.getElementById("copy-preview-content").innerText = text;
+            overlay.classList.add("show");
+            setTimeout(() => overlay.classList.remove("show"), 2000);
           });
-        }
-
-        function showCopyPreview(text) {
-          const overlay = document.getElementById("copy-preview-overlay");
-          const content = document.getElementById("copy-preview-content");
-          content.innerText = text;
-          overlay.classList.add("show");
-          setTimeout(() => {
-            overlay.classList.remove("show");
-          }, 2000); // 2 seconds to allow reading the full scrollable copy
         }
 
         window.copyFromPreview = function () {
@@ -2572,89 +2374,42 @@
             prog += (95 - prog) * 0.1;
             updateToastProgress(prog);
           }, 150);
-
           const stage = document.getElementById("share-card-stage");
           stage.innerHTML = "";
-
           const card = document.createElement("div");
           card.className = "share-card-container";
-
           const now = new Date().toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",
             year: "numeric",
           });
-
           const currentHost = window.location.href || " ";
-
-          card.innerHTML = `
-            <div class="share-card-header">
-              <div>
-                <div class="share-card-meta">Syllabus Report // ${now}</div>
-                <div class="share-card-brand">PSET TRACKER</div>
-              </div>
-            </div>
-
-            <div class="share-report-body">
-              ${state.order
-                .map((code) => {
-                  const c = state.courses[code];
-                  const color =
-                    COLORS.find((col) => col.id === c.color) || COLORS[0];
-                  const total = c.psets.length;
-                  const done = c.psets.filter((p) => p.completed).length;
-                  const pct =
-                    total === 0 ? 0 : Math.round((done / total) * 100);
-
-                  const psetItems = c.psets
-                    .map(
-                      (p, pi) => `
-                  <div class="share-task-item">
-                    ${
-                      p.completed
-                        ? `<svg class="share-task-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>`
-                        : `<div class="share-task-empty"></div>`
-                    }
-                    PSET#${String(pi + 1).padStart(2, "0")} - ${p.title}
-                  </div>
-                `,
-                    )
+          card.innerHTML = `<div class="share-card-header"><div><div class="share-card-meta">Syllabus Report // ${now}</div><div class="share-card-brand">PSET TRACKER</div></div></div><div class="share-report-body">${state.order
+            .map((code) => {
+              const c = state.courses[code];
+              const color =
+                COLORS.find((col) => col.id === c.color) || COLORS[0];
+              const prog = getCourseProgress(c);
+              const psetItems = c.psets
+                .map((p, pi) => {
+                  const subs = (p.subtopics || [])
+                    .map((s) => {
+                      const subObj =
+                        typeof s === "string"
+                          ? { title: s, completed: false }
+                          : s;
+                      return `<div style="font-size:11px; color:#6b6b7a; margin-left:26px; display:flex; align-items:center; gap:8px; margin-top:4px"><span style="color:${subObj.completed ? "#7fff8a" : "#2a2a2f"}">${subObj.completed ? "✓" : "○"}</span>${subObj.title}</div>`;
+                    })
                     .join("");
-
-                  return `
-                  <div class="share-course-section">
-                    <div class="share-course-header">
-                      <div class="share-course-code" style="color: ${color.hex}">${code}</div>
-                      <div class="share-course-title">${c.title}</div>
-                    </div>
-                    <div class="share-course-content">
-                      <div class="share-progress-container">
-                        <div class="share-progress-label">Current Completion</div>
-                        <div class="share-progress-val" style="color: ${color.hex}">${pct}%</div>
-                        <div class="share-progress-bg">
-                          <div class="share-progress-fill" style="width: ${pct}%; background: ${color.hex}"></div>
-                        </div>
-                      </div>
-                      <div class="share-task-list">
-                        ${psetItems}
-                      </div>
-                    </div>
-                  </div>
-                `;
+                  return `<div style="margin-bottom:12px"><div class="share-task-item">${p.completed ? '<svg class="share-task-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : '<div class="share-task-empty"></div>'}PSET#${String(pi + 1).padStart(2, "0")} - ${p.title}</div>${subs}</div>`;
                 })
-                .join("")}
-            </div>
-
-            <div class="share-card-footer">
-              <div class="share-card-footer-info">
-                GENERATED BY: ${currentHost}<br>
-              </div>
-              <div class="share-card-watermark">@chqrlzz</div>
-            </div>
-          `;
-
+                .join("");
+              return `<div class="share-course-section"><div class="share-course-header"><div class="share-course-code" style="color: ${color.hex}">${code}</div><div class="share-course-title">${c.title}</div></div><div class="share-course-content"><div class="share-progress-container"><div class="share-progress-label">Current Completion</div><div class="share-progress-val" style="color: ${color.hex}">${prog.pct}%</div><div class="share-progress-bg"><div class="share-progress-fill" style="width: ${prog.pct}%; background: ${color.hex}"></div></div></div><div class="share-task-list">${psetItems}</div></div></div>`;
+            })
+            .join(
+              "",
+            )}</div><div class="share-card-footer"><div class="share-card-footer-info">GENERATED BY: ${currentHost}<br></div></div>`;
           stage.appendChild(card);
-
           setTimeout(() => {
             html2canvas(card, {
               scale: 2,
@@ -2667,15 +2422,10 @@
                 canvas.toBlob((blob) => {
                   clearInterval(progInterval);
                   updateToastProgress(100);
-
-                  const fileName = `PSET_Tracker_Report_${new Date().getTime()}.png`;
-
-                  // Always Download
                   const link = document.createElement("a");
-                  link.download = fileName;
+                  link.download = `PSET_Tracker_Report_${new Date().getTime()}.png`;
                   link.href = canvas.toDataURL("image/png");
                   link.click();
-
                   stage.innerHTML = "";
                   setTimeout(() => {
                     hideToast();
@@ -2690,7 +2440,9 @@
                 toast("Export Failed");
               });
           }, 200);
-        };        window.exportData = function () {
+        };
+
+        window.exportData = function () {
           const blob = new Blob([JSON.stringify(state)], {
             type: "application/json",
           });
@@ -2731,20 +2483,12 @@
           const t = document.getElementById("toast");
           const msgEl = document.getElementById("toast-msg");
           const fill = document.getElementById("toast-progress-fill");
-
           msgEl.innerText = msg;
           if (fill) fill.style.width = "0%";
-
-          if (progress) {
-            t.classList.add("progress");
-          } else {
-            t.classList.remove("progress");
-          }
-
+          if (progress) t.classList.add("progress");
+          else t.classList.remove("progress");
           t.classList.add("show");
-          if (!progress) {
-            setTimeout(() => t.classList.remove("show"), 3000);
-          }
+          if (!progress) setTimeout(() => t.classList.remove("show"), 3000);
         }
 
         window.updateToastProgress = function (pct) {
@@ -2764,7 +2508,6 @@
             if (state.theme) setTheme(state.theme);
           }
           render();
-
           document.getElementById("menu-btn").onclick = (e) => {
             e.stopPropagation();
             document.getElementById("main-menu").classList.toggle("hidden");
@@ -2772,7 +2515,6 @@
           document.addEventListener("click", () =>
             document.getElementById("main-menu").classList.add("hidden"),
           );
-
           document.getElementById("course-input").onkeydown = (e) => {
             if (e.key === "Enter") addCourse();
           };
