@@ -27,7 +27,7 @@
         --text: #ececed;
         --muted: #6b6b7a;
         --muted2: #4a4a55;
-        --accent: #7fff8a;
+        --accent: #c17fff;
         --accent-dim: rgba(127, 255, 138, 0.1);
         --done: #4ade80;
         --danger: #ff6b6b;
@@ -484,19 +484,20 @@
         border-radius: 4px;
         min-width: 60px;
         text-align: center;
+        flex-shrink: 0;
       }
       .pset-title {
         flex: 1;
         font-size: 15px;
         font-weight: 400;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
 
       .pset-actions {
         display: flex;
         gap: 2px;
+        flex-shrink: 0;
       }
       .action-btn {
         background: transparent;
@@ -536,7 +537,25 @@
         gap: 10px;
         font-size: 13px;
         color: var(--muted);
-        padding: 4px 0;
+        padding: 6px 0;
+      }
+      .sub-drag-handle {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        cursor: grab;
+        padding: 4px;
+        opacity: 0.3;
+        transition: opacity 0.2s;
+        margin-left: -20px;
+      }
+      .sub-drag-handle:hover {
+        opacity: 0.8;
+      }
+      .sub-drag-handle div {
+        width: 10px;
+        height: 1px;
+        background: var(--text);
       }
       .subtopic-text {
         flex: 1;
@@ -747,6 +766,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        justify-content: center;
         z-index: 100;
       }
       @media (min-width: 721px) {
@@ -757,18 +777,25 @@
           width: 720px;
           padding: 16px 20px 32px;
           flex-wrap: nowrap;
+          gap: 10px;
         }
       }
 
       .btn-main {
-        flex: 1 1 calc(33.33% - 8px);
+        flex: 1 1 120px;
         padding: 12px 8px;
         font-size: 10px;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.02em;
         text-transform: uppercase;
         border-radius: var(--radius);
         font-weight: 600;
         white-space: nowrap;
+        text-align: center;
+      }
+      @media (min-width: 480px) {
+        .btn-main {
+          font-size: 11px;
+        }
       }
       @media (min-width: 480px) {
         .btn-main {
@@ -1022,7 +1049,7 @@
           <h1>PSET Tracker</h1>
           <div class="tagline-box">
             <div class="version-row">
-              <div class="version" onclick="openChangelogModal()">v2.1.0</div>
+              <div class="version" onclick="openChangelogModal()">v2.6.0</div>
             </div>
             <div class="tagline">PSET<span>_</span>TRACK</div>
           </div>
@@ -1453,6 +1480,7 @@
             "
             >Lead Developer</p
           >
+          <div style="font-size: 10px; color: var(--muted2); margin-top: 8px; letter-spacing: 0.1em;">SYSTEM v2.6.0</div>
 
           <div class="social-links">
             <a href="https://t.me/chqrlzz" target="_blank" class="social-btn">
@@ -1588,7 +1616,7 @@
               ">
               <span
                 style="font-size: 13px; font-weight: 700; color: var(--text)"
-                >v2.1.0</span
+                >v2.6.0</span
               >
               <span
                 style="
@@ -1604,19 +1632,15 @@
             </div>
             <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
               <div style="margin-bottom: 8px"
-                ><strong style="color: var(--text)">LOGIC:</strong> Implemented
-                Subtopic Lock Logic to prevent unchecking main tasks when
-                sub-progress is finalized.</div
+                ><strong style="color: var(--text)">LOGIC:</strong> Enhanced
+                completion synchronization: unchecking a main PSET now
+                automatically unchecks all its subtopics for full state
+                consistency.</div
               >
               <div style="margin-bottom: 8px"
-                ><strong style="color: var(--text)">MOTION:</strong> Upgraded to
-                Omni-Motion v10 with weightless XY dragging and
-                hyper-elevation.</div
-              >
-              <div style="margin-bottom: 8px"
-                ><strong style="color: var(--text)">REPORTS:</strong> Integrated
-                weighted progress tracking across all dashboards and share
-                cards.</div
+                ><strong style="color: var(--text)">UX:</strong> Removed subtopic
+                locks, allowing users to toggle main tasks freely while
+                automatically updating children.</div
               >
             </div>
           </div>
@@ -1645,11 +1669,11 @@
                 color: var(--text);
                 margin-bottom: 12px;
               "
-              >v2.0.0 - Omni Update</div
+              >v2.5.0 - Action Bar Update</div
             >
             <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
-              • Total XY movement freedom during drag<br />
-              • Subtopic-weighted progress intelligence
+              • Re-engineered Action Bar for wide-screen responsiveness<br />
+              • Optimized button scaling and width distribution
             </div>
           </div>
 
@@ -1898,15 +1922,18 @@
           const pset = state.courses[state.active].psets[idx];
           const hasSubtopics = pset.subtopics && pset.subtopics.length > 0;
 
-          if (hasSubtopics && pset.completed) {
-            const allDone = pset.subtopics.every((s) => s.completed);
-            if (allDone) {
-              toast("Uncheck a subtopic to undo this task");
-              return;
-            }
-          }
-
           pset.completed = !pset.completed;
+          
+          if (hasSubtopics) {
+            pset.subtopics.forEach((s, si) => {
+              const targetStatus = pset.completed;
+              if (typeof s === "string") {
+                pset.subtopics[si] = { title: s, completed: targetStatus };
+              } else {
+                s.completed = targetStatus;
+              }
+            });
+          }
           saveAndRender();
         };
 
@@ -2074,7 +2101,8 @@
                           typeof s === "string"
                             ? { title: s, completed: false }
                             : s;
-                        return `<div class="subtopic-item ${subObj.completed ? "completed" : ""}">
+                        return `<div class="subtopic-item ${subObj.completed ? "completed" : ""}" data-pset-index="${i}" data-sub-index="${si}">
+                        <div class="sub-drag-handle"><div></div><div></div><div></div></div>
                         <span class="sub-check" onclick="toggleSubtopicDone(${i}, ${si})">${subObj.completed ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : '<div style="width:10px; height:10px; border:1px solid var(--muted2); border-radius:2px"></div>'}</span>
                         <span class="subtopic-text">${subObj.title}</span>
                         <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${i}, ${si})">✕</button>
@@ -2090,7 +2118,10 @@
               </div>
             `;
             container.appendChild(li);
-            initUnifiedDrag(li, i);
+            initUnifiedDrag(li, i, "pset");
+            li.querySelectorAll(".subtopic-item").forEach((subEl, si) => {
+              initUnifiedDrag(subEl, si, "subtopic", i);
+            });
           });
         }
 
@@ -2102,16 +2133,21 @@
           placeholder: null,
           initialX: 0,
           initialY: 0,
+          nestTargetIndex: null,
         };
 
-        function initUnifiedDrag(el, index) {
-          const handle = el.querySelector(".drag-handle");
+        function initUnifiedDrag(el, index, type = "pset", parentIndex = null) {
+          const handle = el.querySelector(
+            type === "pset" ? ".drag-handle" : ".sub-drag-handle",
+          );
 
           const startDrag = (e) => {
             const touch = e.type === "touchstart" ? e.touches[0] : e;
             if (e.type === "mousedown" && e.button !== 0) return;
 
             dragCtx.active = true;
+            dragCtx.type = type;
+            dragCtx.parentIndex = parentIndex;
             dragCtx.index = index;
             dragCtx.initialX = touch.clientX;
             dragCtx.initialY = touch.clientY;
@@ -2121,6 +2157,10 @@
             dragCtx.ghost.classList.add("drag-ghost");
             dragCtx.ghost.style.width = el.offsetWidth + "px";
             dragCtx.ghost.style.height = el.offsetHeight + "px";
+            if (type === "subtopic") {
+              dragCtx.ghost.style.background = "var(--surface2)";
+              dragCtx.ghost.style.paddingLeft = "20px";
+            }
 
             const rect = el.getBoundingClientRect();
             dragCtx.ghost.style.top = rect.top + "px";
@@ -2140,7 +2180,14 @@
             });
 
             el.classList.add("dragging");
-            el.parentNode.insertBefore(dragCtx.placeholder, el);
+            if (type === "pset") {
+              el.parentNode.insertBefore(dragCtx.placeholder, el);
+            } else {
+              // For subtopics, placeholder goes into the main pset-list if dragged out
+              document
+                .getElementById("pset-list")
+                .insertBefore(dragCtx.placeholder, el.closest(".pset-block"));
+            }
 
             if (e.type === "touchstart") e.preventDefault();
           };
@@ -2168,23 +2215,56 @@
           ];
 
           let targetItem = null;
+          let foundNestTarget = null;
+
           for (const item of items) {
             const rect = item.getBoundingClientRect();
-            if (touch.clientY < rect.top + rect.height / 2) {
+            const itemIdx = parseInt(item.dataset.index);
+
+            // Nesting Detection: If hovering over the middle of a card
+            // For PSETs: nest into others. For subtopics: move to others.
+            if (
+              touch.clientY > rect.top + 10 &&
+              touch.clientY < rect.bottom - 10 &&
+              (dragCtx.type === "subtopic" || itemIdx !== dragCtx.index)
+            ) {
+              // Prevent subtopic from nesting into its own parent
+              if (
+                dragCtx.type === "pset" ||
+                itemIdx !== dragCtx.parentIndex
+              ) {
+                foundNestTarget = itemIdx;
+                item.querySelector(".pset-card").style.borderColor = "var(--accent)";
+                item.querySelector(".pset-card").style.background =
+                  "var(--accent-dim)";
+              }
+            } else {
+              item.querySelector(".pset-card").style.borderColor = "";
+              item.querySelector(".pset-card").style.background = "";
+            }
+
+            if (!foundNestTarget && touch.clientY < rect.top + rect.height / 2) {
               targetItem = item;
               break;
             }
           }
 
-          if (targetItem) {
-            if (dragCtx.placeholder.nextSibling !== targetItem) {
-              list.insertBefore(dragCtx.placeholder, targetItem);
-            }
-          } else if (items.length > 0) {
-            const lastRect = items[items.length - 1].getBoundingClientRect();
-            if (touch.clientY > lastRect.bottom - 10) {
-              if (dragCtx.placeholder.nextSibling !== null) {
-                list.appendChild(dragCtx.placeholder);
+          dragCtx.nestTargetIndex = foundNestTarget;
+
+          if (foundNestTarget !== null) {
+            dragCtx.placeholder.style.display = "none";
+          } else {
+            dragCtx.placeholder.style.display = "block";
+            if (targetItem) {
+              if (dragCtx.placeholder.nextSibling !== targetItem) {
+                list.insertBefore(dragCtx.placeholder, targetItem);
+              }
+            } else if (items.length > 0) {
+              const lastRect = items[items.length - 1].getBoundingClientRect();
+              if (touch.clientY > lastRect.bottom - 10) {
+                if (dragCtx.placeholder.nextSibling !== null) {
+                  list.appendChild(dragCtx.placeholder);
+                }
               }
             }
           }
@@ -2200,7 +2280,13 @@
           const children = [...list.children];
           let to = children.indexOf(dragCtx.placeholder);
 
-          if (to > from) to--;
+          if (dragCtx.type === "pset" && to > from) to--;
+
+          // Clear highlights
+          document.querySelectorAll(".pset-card").forEach((c) => {
+            c.style.borderColor = "";
+            c.style.background = "";
+          });
 
           // Drop Logic - Smooth "Landing"
           if (dragCtx.ghost) {
@@ -2222,13 +2308,65 @@
             .querySelectorAll(".dragging")
             .forEach((el) => el.classList.remove("dragging"));
 
-          if (from !== to && to !== -1) {
-            const course = state.courses[state.active];
-            const [temp] = course.psets.splice(from, 1);
-            course.psets.splice(to, 0, temp);
-            saveAndRender();
-          } else {
-            render();
+          const course = state.courses[state.active];
+
+          if (dragCtx.type === "subtopic") {
+            const sourcePset = course.psets[dragCtx.parentIndex];
+            const subObj = sourcePset.subtopics[dragCtx.index];
+
+            if (dragCtx.nestTargetIndex !== null) {
+              // Move subtopic to another PSET
+              const targetPset = course.psets[dragCtx.nestTargetIndex];
+              if (!targetPset.subtopics) targetPset.subtopics = [];
+              targetPset.subtopics.push(subObj);
+              sourcePset.subtopics.splice(dragCtx.index, 1);
+
+              const allDone = targetPset.subtopics.every((s) => s.completed);
+              targetPset.completed = allDone;
+              saveAndRender();
+              toast(`Moved to ${targetPset.title}`);
+            } else if (to !== -1) {
+              // Promote subtopic to PSET
+              const newPset = {
+                title: subObj.title,
+                completed: subObj.completed,
+                subtopics: [],
+              };
+              course.psets.splice(to, 0, newPset);
+              sourcePset.subtopics.splice(dragCtx.index, 1);
+              saveAndRender();
+              toast("Promoted to Main Task");
+            } else {
+              render();
+            }
+          } else if (dragCtx.type === "pset") {
+            if (dragCtx.nestTargetIndex !== null) {
+              const sourcePset = course.psets[from];
+              const targetPset = course.psets[dragCtx.nestTargetIndex];
+              if (!targetPset.subtopics) targetPset.subtopics = [];
+
+              targetPset.subtopics.push({
+                title: sourcePset.title,
+                completed: sourcePset.completed,
+              });
+
+              if (sourcePset.subtopics && sourcePset.subtopics.length > 0) {
+                sourcePset.subtopics.forEach((s) => targetPset.subtopics.push(s));
+              }
+
+              const allDone = targetPset.subtopics.every((s) => s.completed);
+              targetPset.completed = allDone;
+
+              course.psets.splice(from, 1);
+              saveAndRender();
+              toast(`Merged into ${targetPset.title}`);
+            } else if (from !== to && to !== -1) {
+              const [temp] = course.psets.splice(from, 1);
+              course.psets.splice(to, 0, temp);
+              saveAndRender();
+            } else {
+              render();
+            }
           }
 
           dragCtx.active = false;
@@ -2271,14 +2409,14 @@
             c.psets.forEach((p, pIdx) => {
               const isLastPset = pIdx === c.psets.length - 1;
               const psetPrefix = isLastPset ? " └─ " : " ├─ ";
-              out += `${psetPrefix}${p.completed ? "[✓] " : ""}${p.title}\n`;
+              out += `${psetPrefix}${p.title}\n`;
               const subPrefixBase = isLastPset ? "        " : " │      ";
               (p.subtopics || []).forEach((s, sIdx) => {
                 const isLastSub = sIdx === p.subtopics.length - 1;
                 const subPrefix = isLastSub ? "└─ " : "├─ ";
                 const subObj =
                   typeof s === "string" ? { title: s, completed: false } : s;
-                out += `${subPrefixBase}${subPrefix}${subObj.completed ? "[✓] " : ""}${subObj.title}\n`;
+                out += `${subPrefixBase}${subPrefix}${subObj.title}\n`;
               });
             });
             out += "\n";

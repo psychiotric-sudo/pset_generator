@@ -1,5 +1,52 @@
 # PSET Tracker Changelog
 
+Version: 2.6.0
+Date: 2026-04-09
+Title: Task Check Synchronization Logic
+
+- Fixed PSET check logic: unchecking a main PSET topic now automatically unchecks all of its associated subtopics.
+- Removed subtopic-based completion locks, granting users full freedom to toggle parent task states.
+- Enhanced state consistency: parent and child completion statuses are now strictly synchronized in both directions (all children check parent, parent uncheck clears all children).
+- System-wide bump to v2.6.0.
+
+Version: 2.5.0
+Date: 2026-04-09
+Title: Action Bar Responsiveness & UX Refinement
+
+- Re-engineered the Action Bar with a fluid flexbox layout, ensuring buttons distribute equally and fill the container on wide screens.
+- Optimized button scaling and padding to provide a balanced "desktop-first" feel while maintaining mobile touch-friendliness.
+- Balanced font sizing and letter-spacing for better readability across various screen densities.
+- System-wide bump to v2.5.0.
+
+Version: 2.4.0
+Date: 2026-04-09
+Title: Inverse Motion & Multi-Layer Nesting
+
+- Implemented "Inverse Drag-and-Drop": subtopics now feature drag handles and can be dragged into the main list to be promoted back to PSET status.
+- Enabled "Cross-Nesting": subtopics can be dragged directly into other PSET cards to change their parent.
+- Optimized wide-screen layout: action bar buttons now maintain balanced widths on desktop displays.
+- Visual ghosting for subtopic drags includes surface-matching backgrounds for better clarity.
+- System-wide bump to v2.4.0.
+
+Version: 2.3.0
+Date: 2026-04-09
+Title: Nesting Engine & Logic Synchronization
+
+- Implemented "Nesting Engine": drag any PSET card directly onto another to convert it into a subtopic.
+- Synchronized parent/child check logic: checking a main PSET now automatically marks all its subtopics as completed.
+- Optimized action bar for responsiveness: buttons now center-align and adapt fluidly to screen width.
+- Enhanced drag-and-drop feedback with "Target Glow" when hovering over cards for nesting.
+- System-wide bump to v2.3.0.
+
+Version: 2.2.0
+Date: 2026-04-09
+Title: Hierarchy Clean-up & Mobile UI Optimization
+
+- Removed user progress indicators ([✓]) from hierarchy copy functions to focus on structure.
+- Implemented text wrapping for PSET titles to prevent overlapping on small screens.
+- Enhanced layout stability on mobile by preventing task numbers and action buttons from shrinking.
+- Bumped system version to v2.2.0 across all interfaces.
+
 Version: 2.1.0
 Date: 2026-04-09
 Title: Subtopic Lock Logic & Progress Refinement
