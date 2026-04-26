@@ -1049,7 +1049,7 @@
           <h1>PSET Tracker</h1>
           <div class="tagline-box">
             <div class="version-row">
-              <div class="version" onclick="openChangelogModal()">v2.6.0</div>
+              <div class="version" onclick="openChangelogModal()">v2.6.1</div>
             </div>
             <div class="tagline">PSET<span>_</span>TRACK</div>
           </div>
@@ -1203,7 +1203,7 @@
             id="import-file"
             class="hidden"
             accept=".json"
-            onchange="importData(this)" />
+            onchange="importDataAsync(this)" />
         </div>
       </header>
 
@@ -1313,7 +1313,7 @@
     </div>
 
     <div id="action-bar">
-      <button class="btn-main btn-secondary" onclick="generateShareCard()"
+      <button class="btn-main btn-secondary" onclick="generateShareCardAsync()"
         >Download Progress</button
       >
       <button class="btn-main btn-secondary" onclick="previewAll('report')"
@@ -1480,7 +1480,7 @@
             "
             >Lead Developer</p
           >
-          <div style="font-size: 10px; color: var(--muted2); margin-top: 8px; letter-spacing: 0.1em;">SYSTEM v2.6.0</div>
+          <div style="font-size: 10px; color: var(--muted2); margin-top: 8px; letter-spacing: 0.1em;">SYSTEM v2.6.1</div>
 
           <div class="social-links">
             <a href="https://t.me/chqrlzz" target="_blank" class="social-btn">
@@ -1616,7 +1616,7 @@
               ">
               <span
                 style="font-size: 13px; font-weight: 700; color: var(--text)"
-                >v2.6.0</span
+                >v2.6.1</span
               >
               <span
                 style="
@@ -2033,39 +2033,60 @@
         function renderTabs() {
           const container = document.getElementById("course-tabs");
           container.innerHTML = "";
-          state.order.forEach((code) => {
-            const c = state.courses[code];
-            const color = COLORS.find((col) => col.id === c.color) || COLORS[0];
-            const tab = document.createElement("div");
-            tab.className = `course-tab ${state.active === code ? "active" : ""}`;
-            if (state.active === code) {
-              tab.style.setProperty("--tab-color", color.hex);
-              tab.style.setProperty("--tab-dim", color.dim);
-            }
-            tab.onclick = () => setActive(code);
-            tab.innerHTML = `<span class="tab-dot"></span>${code}`;
-            container.appendChild(tab);
+          
+          state.order.forEach((courseCode) => {
+            const courseTab = createCourseTabElement(courseCode);
+            container.appendChild(courseTab);
           });
+        }
+
+        function createCourseTabElement(courseCode) {
+          const course = state.courses[courseCode];
+          const color = COLORS.find((col) => col.id === course.color) || COLORS[0];
+          
+          const tab = document.createElement("div");
+          const isActive = state.active === courseCode;
+          tab.className = `course-tab ${isActive ? "active" : ""}`;
+          
+          if (isActive) {
+            tab.style.setProperty("--tab-color", color.hex);
+            tab.style.setProperty("--tab-dim", color.dim);
+          }
+          
+          tab.onclick = () => setActive(courseCode);
+          tab.innerHTML = `<span class="tab-dot"></span>${courseCode}`;
+          return tab;
         }
 
         function renderCourseHeader() {
           const course = state.courses[state.active];
+          if (!course) return;
+
           const color = COLORS.find((c) => c.id === course.color) || COLORS[0];
           const headerText = document.getElementById("course-header-text");
           headerText.innerHTML = `<span>${state.active}</span> — ${course.title}`;
           headerText.style.setProperty("--course-color", color.hex);
-          const prog = getCourseProgress(course);
-          document.getElementById("progress-bar").style.width = `${prog.pct}%`;
+
+          updateProgressBar(course);
+          renderColorPicker(course);
+        }
+
+        function updateProgressBar(course) {
+          const progress = getCourseProgress(course);
+          document.getElementById("progress-bar").style.width = `${progress.pct}%`;
           document.getElementById("progress-text").innerText =
-            `${prog.done}/${prog.total} Tasks Done (${prog.pct}%)`;
+            `${progress.done}/${progress.total} Tasks Done (${progress.pct}%)`;
+        }
+
+        function renderColorPicker(course) {
           const picker = document.getElementById("color-picker-row");
           picker.innerHTML = "";
-          COLORS.forEach((c) => {
-            const sw = document.createElement("div");
-            sw.className = `color-swatch ${course.color === c.id ? "selected" : ""}`;
-            sw.style.background = c.hex;
-            sw.onclick = () => setCourseColor(c.id);
-            picker.appendChild(sw);
+          COLORS.forEach((color) => {
+            const swatch = document.createElement("div");
+            swatch.className = `color-swatch ${course.color === color.id ? "selected" : ""}`;
+            swatch.style.background = color.hex;
+            swatch.onclick = () => setCourseColor(color.id);
+            picker.appendChild(swatch);
           });
         }
 
@@ -2073,56 +2094,73 @@
           const container = document.getElementById("pset-list");
           container.innerHTML = "";
           const course = state.courses[state.active];
-          course.psets.forEach((p, i) => {
-            const hasSubtopics = p.subtopics && p.subtopics.length > 0;
-            const li = document.createElement("li");
-            li.className = `pset-block ${hasSubtopics ? "expanded" : ""}`;
-            li.dataset.index = i;
-            li.innerHTML = `
-              <div class="pset-card ${p.completed ? "completed" : ""}">
-                <div class="pset-main-row">
-                  <div class="drag-handle"><div></div><div></div><div></div><div></div><div></div><div></div></div>
-                  <div class="pset-item">
-                    <div class="pset-number">PSET#${i + 1}</div>
-                    <div class="pset-title">${p.title}</div>
-                    <div class="pset-actions">
-                      <button class="action-btn done" onclick="togglePsetDone(${i})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
-                      <button class="action-btn" onclick="toggleSubtopics(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
-                      <button class="action-btn" onclick="editPsetTitle(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                      <button class="action-btn delete" onclick="deletePset(${i})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                    </div>
-                  </div>
-                </div>
-                <div class="subtopic-panel">
-                  <div class="subtopic-list">
-                    ${(p.subtopics || [])
-                      .map((s, si) => {
-                        const subObj =
-                          typeof s === "string"
-                            ? { title: s, completed: false }
-                            : s;
-                        return `<div class="subtopic-item ${subObj.completed ? "completed" : ""}" data-pset-index="${i}" data-sub-index="${si}">
-                        <div class="sub-drag-handle"><div></div><div></div><div></div></div>
-                        <span class="sub-check" onclick="toggleSubtopicDone(${i}, ${si})">${subObj.completed ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : '<div style="width:10px; height:10px; border:1px solid var(--muted2); border-radius:2px"></div>'}</span>
-                        <span class="subtopic-text">${subObj.title}</span>
-                        <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${i}, ${si})">✕</button>
-                      </div>`;
-                      })
-                      .join("")}
-                  </div>
-                  <div class="input-group" style="padding:0; border:none; background:var(--surface3)">
-                    <input type="text" id="sub-input-${i}" placeholder="Add subtopic..." style="font-size:12px; padding:8px" onkeydown="if(event.key==='Enter')addSubtopic(${i})">
-                    <button class="btn-primary" style="padding:4px 12px; font-size:11px" onclick="addSubtopic(${i})">Add</button>
+          if (!course) return;
+
+          course.psets.forEach((pset, index) => {
+            const psetElement = createPsetBlockElement(pset, index);
+            container.appendChild(psetElement);
+            
+            initUnifiedDrag(psetElement, index, "pset");
+            psetElement.querySelectorAll(".subtopic-item").forEach((subtopicEl, subIndex) => {
+              initUnifiedDrag(subtopicEl, subIndex, "subtopic", index);
+            });
+          });
+        }
+
+        function createPsetBlockElement(pset, index) {
+          const hasSubtopics = pset.subtopics && pset.subtopics.length > 0;
+          const li = document.createElement("li");
+          li.className = `pset-block ${hasSubtopics ? "expanded" : ""}`;
+          li.dataset.index = index;
+          
+          li.innerHTML = `
+            <div class="pset-card ${pset.completed ? "completed" : ""}">
+              <div class="pset-main-row">
+                <div class="drag-handle"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="pset-item">
+                  <div class="pset-number">PSET#${index + 1}</div>
+                  <div class="pset-title">${pset.title}</div>
+                  <div class="pset-actions">
+                    <button class="action-btn done" onclick="togglePsetDone(${index})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+                    <button class="action-btn" onclick="toggleSubtopics(${index})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+                    <button class="action-btn" onclick="editPsetTitle(${index})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn delete" onclick="deletePset(${index})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </div>
                 </div>
               </div>
-            `;
-            container.appendChild(li);
-            initUnifiedDrag(li, i, "pset");
-            li.querySelectorAll(".subtopic-item").forEach((subEl, si) => {
-              initUnifiedDrag(subEl, si, "subtopic", i);
-            });
-          });
+              <div class="subtopic-panel">
+                <div class="subtopic-list">
+                  ${renderSubtopicListHtml(pset, index)}
+                </div>
+                <div class="input-group" style="padding:0; border:none; background:var(--surface3)">
+                  <input type="text" id="sub-input-${index}" placeholder="Add subtopic..." style="font-size:12px; padding:8px" onkeydown="if(event.key==='Enter')addSubtopic(${index})">
+                  <button class="btn-primary" style="padding:4px 12px; font-size:11px" onclick="addSubtopic(${index})">Add</button>
+                </div>
+              </div>
+            </div>
+          `;
+          return li;
+        }
+
+        function renderSubtopicListHtml(pset, psetIndex) {
+          return (pset.subtopics || [])
+            .map((subtopic, subIndex) => {
+              const subtopicData =
+                typeof subtopic === "string" ? { title: subtopic, completed: false } : subtopic;
+              
+              const checkIcon = subtopicData.completed 
+                ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' 
+                : '<div style="width:10px; height:10px; border:1px solid var(--muted2); border-radius:2px"></div>';
+
+              return `
+                <div class="subtopic-item ${subtopicData.completed ? "completed" : ""}" data-pset-index="${psetIndex}" data-sub-index="${subIndex}">
+                  <div class="sub-drag-handle"><div></div><div></div><div></div></div>
+                  <span class="sub-check" onclick="toggleSubtopicDone(${psetIndex}, ${subIndex})">${checkIcon}</span>
+                  <span class="subtopic-text">${subtopicData.title}</span>
+                  <button class="action-btn delete" style="padding:2px" onclick="deleteSubtopic(${psetIndex}, ${subIndex})">✕</button>
+                </div>`;
+            })
+            .join("");
         }
 
         // --- Drag and Drop Engine v9 (Hyper-Elevation) ---
@@ -2379,49 +2417,62 @@
 
         // --- Other functions (Report, Tree, etc) ---
         function generateReport() {
-          let out = "PSET TRACKER SUMMARY\n====================\n\n";
-          state.order.forEach((code) => {
-            const c = state.courses[code];
-            if (!c || c.psets.length === 0) return;
-            const done = c.psets.filter((p) => p.completed).length;
-            out += `[${code}] ${c.title} (${done}/${c.psets.length})\n`;
-            c.psets.forEach((p, i) => {
-              const num = String(i + 1).padStart(2, "0");
-              out += `  ${p.completed ? "[✓]" : "[ ]"} PSET#${num} - ${p.title}\n`;
-              (p.subtopics || []).forEach((s) => {
-                const subObj =
-                  typeof s === "string" ? { title: s, completed: false } : s;
-                out += `    ${subObj.completed ? " [✓]" : " [ ]"} ${subObj.title}\n`;
+          let reportOutput = "PSET TRACKER SUMMARY\n====================\n\n";
+
+          state.order.forEach((courseCode) => {
+            const course = state.courses[courseCode];
+            if (!course || course.psets.length === 0) return;
+
+            const completedPsetsCount = course.psets.filter((pset) => pset.completed).length;
+            reportOutput += `[${courseCode}] ${course.title} (${completedPsetsCount}/${course.psets.length})\n`;
+
+            course.psets.forEach((pset, index) => {
+              const psetNumber = String(index + 1).padStart(2, "0");
+              reportOutput += `  ${pset.completed ? "[✓]" : "[ ]"} PSET#${psetNumber} - ${pset.title}\n`;
+
+              (pset.subtopics || []).forEach((subtopic) => {
+                const subtopicData =
+                  typeof subtopic === "string" ? { title: subtopic, completed: false } : subtopic;
+                reportOutput += `    ${subtopicData.completed ? " [✓]" : " [ ]"} ${subtopicData.title}\n`;
               });
             });
-            out += "\n";
+            reportOutput += "\n";
           });
-          return out.trim();
+
+          return reportOutput.trim();
         }
 
         function generateTree(specificCode = null) {
-          let out = "";
-          const targetOrder = specificCode ? [specificCode] : state.order;
-          targetOrder.forEach((code) => {
-            const c = state.courses[code];
-            if (!c || c.psets.length === 0) return;
-            out += `${code}/\n`;
-            c.psets.forEach((p, pIdx) => {
-              const isLastPset = pIdx === c.psets.length - 1;
+          let treeOutput = "";
+          const targetCourseCodes = specificCode ? [specificCode] : state.order;
+
+          targetCourseCodes.forEach((courseCode) => {
+            const course = state.courses[courseCode];
+            if (!course || course.psets.length === 0) return;
+
+            treeOutput += `${courseCode}/\n`;
+
+            course.psets.forEach((pset, psetIndex) => {
+              const isLastPset = psetIndex === course.psets.length - 1;
               const psetPrefix = isLastPset ? " └─ " : " ├─ ";
-              out += `${psetPrefix}${p.title}\n`;
-              const subPrefixBase = isLastPset ? "        " : " │      ";
-              (p.subtopics || []).forEach((s, sIdx) => {
-                const isLastSub = sIdx === p.subtopics.length - 1;
-                const subPrefix = isLastSub ? "└─ " : "├─ ";
-                const subObj =
-                  typeof s === "string" ? { title: s, completed: false } : s;
-                out += `${subPrefixBase}${subPrefix}${subObj.title}\n`;
+              const psetNumber = String(psetIndex + 1).padStart(2, "0");
+              
+              treeOutput += `${psetPrefix}PSET#${psetNumber} - ${pset.title}\n`;
+
+              const subtopicPrefixBase = isLastPset ? "        " : " │      ";
+              (pset.subtopics || []).forEach((subtopic, subtopicIndex) => {
+                const isLastSubtopic = subtopicIndex === pset.subtopics.length - 1;
+                const subtopicPrefix = isLastSubtopic ? "└─ " : "├─ ";
+                const subtopicData =
+                  typeof subtopic === "string" ? { title: subtopic, completed: false } : subtopic;
+                
+                treeOutput += `${subtopicPrefixBase}${subtopicPrefix}${subtopicData.title}\n`;
               });
             });
-            out += "\n";
+            treeOutput += "\n";
           });
-          return out.trim();
+
+          return treeOutput.trim();
         }
 
         window.previewAll = function (type) {
@@ -2504,50 +2555,24 @@
           document.getElementById("preview-modal").classList.add("hidden");
         };
 
-        window.generateShareCard = function () {
-          if (state.order.length === 0) return toast("No courses to share");
+        window.generateShareCardAsync = function () {
+          if (state.order.length === 0) {
+            return toast("No courses to share");
+          }
+
           toast("Processing Download...", true);
-          let prog = 0;
-          const progInterval = setInterval(() => {
-            prog += (95 - prog) * 0.1;
-            updateToastProgress(prog);
+          let progress = 0;
+          const progressInterval = setInterval(() => {
+            progress += (95 - progress) * 0.1;
+            updateToastProgress(progress);
           }, 150);
+
           const stage = document.getElementById("share-card-stage");
           stage.innerHTML = "";
-          const card = document.createElement("div");
-          card.className = "share-card-container";
-          const now = new Date().toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          });
-          const currentHost = window.location.href || " ";
-          card.innerHTML = `<div class="share-card-header"><div><div class="share-card-meta">Syllabus Report // ${now}</div><div class="share-card-brand">PSET TRACKER</div></div></div><div class="share-report-body">${state.order
-            .map((code) => {
-              const c = state.courses[code];
-              const color =
-                COLORS.find((col) => col.id === c.color) || COLORS[0];
-              const prog = getCourseProgress(c);
-              const psetItems = c.psets
-                .map((p, pi) => {
-                  const subs = (p.subtopics || [])
-                    .map((s) => {
-                      const subObj =
-                        typeof s === "string"
-                          ? { title: s, completed: false }
-                          : s;
-                      return `<div style="font-size:11px; color:#6b6b7a; margin-left:26px; display:flex; align-items:center; gap:8px; margin-top:4px"><span style="color:${subObj.completed ? "#7fff8a" : "#2a2a2f"}">${subObj.completed ? "✓" : "○"}</span>${subObj.title}</div>`;
-                    })
-                    .join("");
-                  return `<div style="margin-bottom:12px"><div class="share-task-item">${p.completed ? '<svg class="share-task-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : '<div class="share-task-empty"></div>'}PSET#${String(pi + 1).padStart(2, "0")} - ${p.title}</div>${subs}</div>`;
-                })
-                .join("");
-              return `<div class="share-course-section"><div class="share-course-header"><div class="share-course-code" style="color: ${color.hex}">${code}</div><div class="share-course-title">${c.title}</div></div><div class="share-course-content"><div class="share-progress-container"><div class="share-progress-label">Current Completion</div><div class="share-progress-val" style="color: ${color.hex}">${prog.pct}%</div><div class="share-progress-bg"><div class="share-progress-fill" style="width: ${prog.pct}%; background: ${color.hex}"></div></div></div><div class="share-task-list">${psetItems}</div></div></div>`;
-            })
-            .join(
-              "",
-            )}</div><div class="share-card-footer"><div class="share-card-footer-info">GENERATED BY: ${currentHost}<br></div></div>`;
+          
+          const card = createShareCardElement();
           stage.appendChild(card);
+
           setTimeout(() => {
             html2canvas(card, {
               scale: 2,
@@ -2557,28 +2582,116 @@
               windowWidth: 1080,
             })
               .then((canvas) => {
-                canvas.toBlob((blob) => {
-                  clearInterval(progInterval);
-                  updateToastProgress(100);
-                  const link = document.createElement("a");
-                  link.download = `PSET_Tracker_Report_${new Date().getTime()}.png`;
-                  link.href = canvas.toDataURL("image/png");
-                  link.click();
-                  stage.innerHTML = "";
-                  setTimeout(() => {
-                    hideToast();
-                    toast("Download Complete");
-                  }, 400);
-                }, "image/png");
+                downloadCanvasAsImage(canvas, progressInterval);
+                stage.innerHTML = "";
               })
               .catch((err) => {
-                clearInterval(progInterval);
+                clearInterval(progressInterval);
                 hideToast();
-                console.error(err);
+                console.error("Share card generation failed:", err);
                 toast("Export Failed");
               });
           }, 200);
         };
+
+        function createShareCardElement() {
+          const card = document.createElement("div");
+          card.className = "share-card-container";
+          
+          const now = new Date().toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          });
+          
+          const currentHost = window.location.href || " ";
+          
+          card.innerHTML = `
+            <div class="share-card-header">
+              <div>
+                <div class="share-card-meta">Syllabus Report // ${now}</div>
+                <div class="share-card-brand">PSET TRACKER</div>
+              </div>
+            </div>
+            <div class="share-report-body">
+              ${renderShareReportBodyHtml()}
+            </div>
+            <div class="share-card-footer">
+              <div class="share-card-footer-info">GENERATED BY: ${currentHost}<br></div>
+            </div>
+          `;
+          return card;
+        }
+
+        function renderShareReportBodyHtml() {
+          return state.order
+            .map((courseCode) => {
+              const course = state.courses[courseCode];
+              const color = COLORS.find((col) => col.id === course.color) || COLORS[0];
+              const progress = getCourseProgress(course);
+              
+              const psetItemsHtml = course.psets
+                .map((pset, psetIndex) => {
+                  const subtopicsHtml = (pset.subtopics || [])
+                    .map((subtopic) => {
+                      const subtopicData = typeof subtopic === "string" ? { title: subtopic, completed: false } : subtopic;
+                      const checkMark = subtopicData.completed ? "✓" : "○";
+                      const checkColor = subtopicData.completed ? "#7fff8a" : "#2a2a2f";
+                      return `<div style="font-size:11px; color:#6b6b7a; margin-left:26px; display:flex; align-items:center; gap:8px; margin-top:4px"><span style="color:${checkColor}">${checkMark}</span>${subtopicData.title}</div>`;
+                    })
+                    .join("");
+
+                  const psetNumber = String(psetIndex + 1).padStart(2, "0");
+                  const psetCheckIcon = pset.completed 
+                    ? '<svg class="share-task-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' 
+                    : '<div class="share-task-empty"></div>';
+
+                  return `
+                    <div style="margin-bottom:12px">
+                      <div class="share-task-item">${psetCheckIcon}PSET#${psetNumber} - ${pset.title}</div>
+                      ${subtopicsHtml}
+                    </div>`;
+                })
+                .join("");
+
+              return `
+                <div class="share-course-section">
+                  <div class="share-course-header">
+                    <div class="share-course-code" style="color: ${color.hex}">${courseCode}</div>
+                    <div class="share-course-title">${course.title}</div>
+                  </div>
+                  <div class="share-course-content">
+                    <div class="share-progress-container">
+                      <div class="share-progress-label">Current Completion</div>
+                      <div class="share-progress-val" style="color: ${color.hex}">${progress.pct}%</div>
+                      <div class="share-progress-bg">
+                        <div class="share-progress-fill" style="width: ${progress.pct}%; background: ${color.hex}"></div>
+                      </div>
+                    </div>
+                    <div class="share-task-list">${psetItemsHtml}</div>
+                  </div>
+                </div>`;
+            })
+            .join("");
+        }
+
+        function downloadCanvasAsImage(canvas, progressInterval) {
+          canvas.toBlob((blob) => {
+            clearInterval(progressInterval);
+            updateToastProgress(100);
+            
+            const link = document.createElement("a");
+            const timestamp = new Date().getTime();
+            link.download = `PSET_Tracker_Report_${timestamp}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            
+            setTimeout(() => {
+              hideToast();
+              toast("Download Complete");
+            }, 400);
+          }, "image/png");
+        }
 
         window.exportData = function () {
           const blob = new Blob([JSON.stringify(state)], {
@@ -2591,14 +2704,17 @@
           a.click();
         };
 
-        window.importData = function (input) {
+        window.importDataAsync = function (input) {
+          if (!input.files || input.files.length === 0) return;
+
           const reader = new FileReader();
-          reader.onload = (e) => {
+          reader.onload = (event) => {
             try {
-              state = JSON.parse(e.target.result);
+              state = JSON.parse(event.target.result);
               saveAndRender();
               toast("Imported Success");
             } catch (err) {
+              console.error("Failed to parse import data:", err);
               toast("Import Failed");
             }
           };
