@@ -1,23 +1,33 @@
 [
   {
-    "version": "v2.7.1",
+    "version": "v2.7.5",
     "date": "2026-04-26",
     "tag": "Latest Build",
     "changes": [
-      { "type": "IMPROVEMENT", "text": "Linked changelog commit hashes directly to GitHub repository." },
-      { "type": "FIX", "text": "Corrected historical commit hashes in system logs." }
+      { "type": "STABILITY", "text": "Implemented FALLBACK_LOGS for file:// protocol support (CORS bypass)." },
+      { "type": "FIX", "text": "Resolved modal click interference and improved link target areas." }
     ],
-    "commits": ["fa08ea9"]
+    "commits": ["2bb8810", "ccda683", "ba69d17"]
+  },
+  {
+    "version": "v2.7.2",
+    "date": "2026-04-26",
+    "tag": "Stable",
+    "changes": [
+      { "type": "IMPROVEMENT", "text": "Linked changelog commit hashes directly to GitHub." },
+      { "type": "REFACTOR", "text": "Finalized system versioning and documentation alignment." }
+    ],
+    "commits": ["7d8b5e7", "fa08ea9"]
   },
   {
     "version": "v2.7.0",
     "date": "2026-04-26",
     "tag": "Stable",
     "changes": [
-      { "type": "FEATURE", "text": "Implemented Markdown Export for better documentation sharing." },
-      { "type": "FEATURE", "text": "Added PWA support with Service Worker for offline-first persistence." },
-      { "type": "IMPROVEMENT", "text": "Enhanced Drag and Drop: Re-engineered reordering logic to provide real-time fluid previews and eliminate snapping." },
-      { "type": "REFACTOR", "text": "Externalized changelog management to a dynamic JSON fetch system." }
+      { "type": "FEATURE", "text": "Implemented Markdown Export for documentation sharing." },
+      { "type": "FEATURE", "text": "Added PWA support with Service Worker for offline persistence." },
+      { "type": "IMPROVEMENT", "text": "Enhanced Drag and Drop: Real-time fluid previews and improved nesting logic." },
+      { "type": "REFACTOR", "text": "Externalized changelog management to a dynamic JSON system." }
     ],
     "commits": ["c4a2758"]
   },
@@ -29,5 +39,24 @@
       { "type": "IMPROVEMENT", "text": "Included course titles in Tree copy output (CODE - Title format)." }
     ],
     "commits": ["2767418"]
+  },
+  {
+    "version": "v2.6.1",
+    "date": "2026-04-26",
+    "tag": "Legacy",
+    "changes": [
+      { "type": "REFACTOR", "text": "Standardized async naming and refactored UI into focused components." },
+      { "type": "FEATURE", "text": "Added PSET numbering (PSET#01) to all export functions." }
+    ],
+    "commits": ["39b5ecd"]
+  },
+  {
+    "version": "v1.0.0",
+    "date": "2026-04-26",
+    "tag": "Base",
+    "changes": [
+      { "type": "INITIAL", "text": "Initial repository setup and system foundation." }
+    ],
+    "commits": ["c8f9db7", "49e620e", "b9a12c7", "d948374", "aaab365", "301756d", "cd5c0d4", "df1f6cd"]
   }
 ]
