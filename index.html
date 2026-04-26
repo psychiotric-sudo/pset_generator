@@ -2450,7 +2450,7 @@
             const course = state.courses[courseCode];
             if (!course || course.psets.length === 0) return;
 
-            treeOutput += `${courseCode}/\n`;
+            treeOutput += `${courseCode} - ${course.title}/\n`;
 
             course.psets.forEach((pset, psetIndex) => {
               const isLastPset = psetIndex === course.psets.length - 1;
