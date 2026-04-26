@@ -9,7 +9,7 @@
       { "type": "IMPROVEMENT", "text": "Enhanced Drag and Drop: Re-engineered reordering logic to provide real-time fluid previews and eliminate snapping." },
       { "type": "REFACTOR", "text": "Externalized changelog management to a dynamic JSON fetch system." }
     ],
-    "commits": ["f2a4b", "8f2a1", "omn-mv"]
+    "commits": ["c4a2758"]
   },
   {
     "version": "v2.6.2",
