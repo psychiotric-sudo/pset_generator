@@ -1,0 +1,33 @@
+[
+  {
+    "version": "v2.7.0",
+    "date": "2026-04-26",
+    "tag": "Latest Build",
+    "changes": [
+      { "type": "FEATURE", "text": "Implemented Markdown Export for better documentation sharing." },
+      { "type": "FEATURE", "text": "Added PWA support with Service Worker for offline-first persistence." },
+      { "type": "IMPROVEMENT", "text": "Enhanced Drag and Drop: Re-engineered reordering logic to provide real-time fluid previews and eliminate snapping." },
+      { "type": "REFACTOR", "text": "Externalized changelog management to a dynamic JSON fetch system." }
+    ],
+    "commits": ["f2a4b", "8f2a1", "omn-mv"]
+  },
+  {
+    "version": "v2.6.2",
+    "date": "2026-04-26",
+    "tag": "Stable",
+    "changes": [
+      { "type": "IMPROVEMENT", "text": "Included course titles in Tree copy output (CODE - Title format)." }
+    ],
+    "commits": ["2767418"]
+  },
+  {
+    "version": "v2.6.1",
+    "date": "2026-04-26",
+    "tag": "Legacy",
+    "changes": [
+      { "type": "REFACTOR", "text": "Standardized async naming and refactored UI into smaller, focused components." },
+      { "type": "FEATURE", "text": "Added PSET numbering (PSET#01) to all export and copy functions." }
+    ],
+    "commits": ["39b5ecd"]
+  }
+]

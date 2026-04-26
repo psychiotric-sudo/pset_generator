@@ -1049,7 +1049,7 @@
           <h1>PSET Tracker</h1>
           <div class="tagline-box">
             <div class="version-row">
-              <div class="version" onclick="openChangelogModal()">v2.6.1</div>
+              <div class="version" onclick="openChangelogModal()">v2.7.0</div>
             </div>
             <div class="tagline">PSET<span>_</span>TRACK</div>
           </div>
@@ -1329,6 +1329,16 @@
           color: var(--accent);
           border: 1px solid var(--accent);
         "
+        onclick="copyAll('markdown')"
+        >Copy Markdown</button
+      >
+      <button
+        class="btn-main btn-primary"
+        style="
+          background: var(--surface2);
+          color: var(--accent);
+          border: 1px solid var(--accent);
+        "
         onclick="copyAll('tree')"
         >Copy Full Hierarchy</button
       >
@@ -1480,7 +1490,7 @@
             "
             >Lead Developer</p
           >
-          <div style="font-size: 10px; color: var(--muted2); margin-top: 8px; letter-spacing: 0.1em;">SYSTEM v2.6.1</div>
+          <div style="font-size: 10px; color: var(--muted2); margin-top: 8px; letter-spacing: 0.1em;">SYSTEM v2.7.0</div>
 
           <div class="social-links">
             <a href="https://t.me/chqrlzz" target="_blank" class="social-btn">
@@ -1582,6 +1592,7 @@
           >
         </div>
         <div
+          id="changelog-container"
           style="
             flex: 1;
             overflow-y: auto;
@@ -1589,126 +1600,8 @@
             scrollbar-width: thin;
             scrollbar-color: var(--border-hi) transparent;
           ">
-          <div
-            style="
-              margin-bottom: 32px;
-              position: relative;
-              padding-left: 20px;
-              border-left: 2px solid var(--accent);
-            ">
-            <div
-              style="
-                position: absolute;
-                left: -7px;
-                top: 0;
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: var(--accent);
-                box-shadow: 0 0 10px var(--accent);
-              "></div>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 12px;
-              ">
-              <span
-                style="font-size: 13px; font-weight: 700; color: var(--text)"
-                >v2.6.1</span
-              >
-              <span
-                style="
-                  font-size: 9px;
-                  padding: 2px 6px;
-                  background: var(--accent-dim);
-                  color: var(--accent);
-                  border-radius: 4px;
-                  text-transform: uppercase;
-                "
-                >Current Build</span
-              >
-            </div>
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
-              <div style="margin-bottom: 8px"
-                ><strong style="color: var(--text)">LOGIC:</strong> Enhanced
-                completion synchronization: unchecking a main PSET now
-                automatically unchecks all its subtopics for full state
-                consistency.</div
-              >
-              <div style="margin-bottom: 8px"
-                ><strong style="color: var(--text)">UX:</strong> Removed subtopic
-                locks, allowing users to toggle main tasks freely while
-                automatically updating children.</div
-              >
-            </div>
-          </div>
-          <div
-            style="
-              margin-bottom: 32px;
-              position: relative;
-              padding-left: 20px;
-              border-left: 2px solid var(--border-hi);
-            ">
-            <div
-              style="
-                position: absolute;
-                left: -6px;
-                top: 0;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: var(--surface3);
-                border: 2px solid var(--border-hi);
-              "></div>
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 12px;
-              "
-              >v2.5.0 - Action Bar Update</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
-              • Re-engineered Action Bar for wide-screen responsiveness<br />
-              • Optimized button scaling and width distribution
-            </div>
-          </div>
-
-          <div
-            style="
-              margin-bottom: 32px;
-              position: relative;
-              padding-left: 20px;
-              border-left: 2px solid var(--border-hi);
-            ">
-            <div
-              style="
-                position: absolute;
-                left: -6px;
-                top: 0;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: var(--surface3);
-                border: 2px solid var(--border-hi);
-              "></div>
-            <div
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 12px;
-              "
-              >v1.2.0 - Syllabus Engine</div
-            >
-            <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
-              • Subtopics support individual completion toggles<br />
-              • HD share cards include detailed subtopic progress<br />
-              • UI refinement and theme stabilization
-            </div>
+          <div style="color: var(--muted); font-size: 11px; text-align: center; padding: 20px;">
+            Fetching system logs...
           </div>
         </div>
         <div
@@ -1837,11 +1730,33 @@
           document.getElementById("author-modal").classList.remove("hidden");
           document.getElementById("main-menu").classList.add("hidden");
         };
-        window.openChangelogModal = function () {
-          document.getElementById("changelog-modal").classList.remove("hidden");
+        window.openChangelogModal = async function () {
+          const modal = document.getElementById("changelog-modal");
+          const container = document.getElementById("changelog-container");
+          modal.classList.remove("hidden");
           document.getElementById("main-menu").classList.add("hidden");
-        };
-        window.setTheme = function (theme) {
+
+          try {
+            const response = await fetch("changelogs.json");
+            const logs = await response.json();
+
+            container.innerHTML = logs.map(log => `
+              <div style="margin-bottom: 32px; position: relative; padding-left: 20px; border-left: 2px solid ${log.tag === 'Latest Build' ? 'var(--accent)' : 'var(--border-hi)'}">
+                <div style="position: absolute; left: -7px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: ${log.tag === 'Latest Build' ? 'var(--accent)' : 'var(--surface3)'}; border: 2px solid ${log.tag === 'Latest Build' ? 'var(--accent)' : 'var(--border-hi)'}"></div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                  <span style="font-size: 13px; font-weight: 700; color: var(--text)">${log.version}</span>
+                  <span style="font-size: 9px; padding: 2px 6px; background: var(--accent-dim); color: var(--accent); border-radius: 4px; text-transform: uppercase;">${log.tag}</span>
+                </div>
+                <div style="font-size: 11px; color: var(--muted); line-height: 1.8">
+                  ${log.changes.map(change => `<div><strong style="color: var(--text)">${change.type}:</strong> ${change.text}</div>`).join('')}
+                  <div style="margin-top: 10px; opacity: 0.5; font-size: 9px; font-family: var(--mono)">COMMITS: ${log.commits.join(', ')}</div>
+                </div>
+              </div>
+            `).join('');
+          } catch (err) {
+            container.innerHTML = `<div style="color: var(--danger); font-size: 11px;">Failed to load logs.</div>`;
+          }
+        };        window.setTheme = function (theme) {
           document.body.className = theme;
           state.theme = theme;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2238,19 +2153,13 @@
           if (!dragCtx.active) return;
           const touch = e.type === "touchmove" ? e.touches[0] : e;
 
-          // Free Movement with Dynamic Tilt
           const dx = touch.clientX - dragCtx.initialX;
           const dy = touch.clientY - dragCtx.initialY;
           const tilt = Math.min(Math.max(dx * 0.05, -3), 3);
-          dragCtx.ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.1) rotate(${1 + tilt}deg)`;
+          dragCtx.ghost.style.transform = `translate(${dx}px, ${dy}px) scale(1.05) rotate(${tilt}deg)`;
 
-          // Smooth Reordering Detection
           const list = document.getElementById("pset-list");
-          const items = [
-            ...list.querySelectorAll(
-              ".pset-block:not(.dragging):not(.drop-placeholder)",
-            ),
-          ];
+          const items = [...list.querySelectorAll(".pset-block:not(.dragging):not(.drop-placeholder)")];
 
           let targetItem = null;
           let foundNestTarget = null;
@@ -2259,26 +2168,20 @@
             const rect = item.getBoundingClientRect();
             const itemIdx = parseInt(item.dataset.index);
 
-            // Nesting Detection: If hovering over the middle of a card
-            // For PSETs: nest into others. For subtopics: move to others.
-            if (
-              touch.clientY > rect.top + 10 &&
-              touch.clientY < rect.bottom - 10 &&
-              (dragCtx.type === "subtopic" || itemIdx !== dragCtx.index)
-            ) {
-              // Prevent subtopic from nesting into its own parent
-              if (
-                dragCtx.type === "pset" ||
-                itemIdx !== dragCtx.parentIndex
-              ) {
-                foundNestTarget = itemIdx;
-                item.querySelector(".pset-card").style.borderColor = "var(--accent)";
-                item.querySelector(".pset-card").style.background =
-                  "var(--accent-dim)";
+            // Improved Nesting Detection
+            if (touch.clientY > rect.top + 15 && touch.clientY < rect.bottom - 15) {
+              if (dragCtx.type === "subtopic" || itemIdx !== dragCtx.index) {
+                if (dragCtx.type === "pset" || itemIdx !== dragCtx.parentIndex) {
+                  foundNestTarget = itemIdx;
+                  item.querySelector(".pset-card").style.borderColor = "var(--accent)";
+                  item.querySelector(".pset-card").style.background = "var(--accent-dim)";
+                  item.querySelector(".pset-card").style.transform = "scale(1.02)";
+                }
               }
             } else {
               item.querySelector(".pset-card").style.borderColor = "";
               item.querySelector(".pset-card").style.background = "";
+              item.querySelector(".pset-card").style.transform = "";
             }
 
             if (!foundNestTarget && touch.clientY < rect.top + rect.height / 2) {
@@ -2293,6 +2196,7 @@
             dragCtx.placeholder.style.display = "none";
           } else {
             dragCtx.placeholder.style.display = "block";
+            dragCtx.placeholder.style.height = dragCtx.ghost.offsetHeight + "px";
             if (targetItem) {
               if (dragCtx.placeholder.nextSibling !== targetItem) {
                 list.insertBefore(dragCtx.placeholder, targetItem);
@@ -2300,9 +2204,7 @@
             } else if (items.length > 0) {
               const lastRect = items[items.length - 1].getBoundingClientRect();
               if (touch.clientY > lastRect.bottom - 10) {
-                if (dragCtx.placeholder.nextSibling !== null) {
-                  list.appendChild(dragCtx.placeholder);
-                }
+                list.appendChild(dragCtx.placeholder);
               }
             }
           }
@@ -2527,8 +2429,33 @@
           modal.classList.remove("hidden");
         };
 
+        function generateMarkdownReport() {
+          let md = "# PSET TRACKER PROGRESS REPORT\n\n";
+          state.order.forEach((code) => {
+            const c = state.courses[code];
+            if (!c || c.psets.length === 0) return;
+            const prog = getCourseProgress(c);
+            md += `## [${code}] ${c.title} (${prog.done}/${prog.total})\n`;
+            md += `> **Completion:** ${prog.pct}%\n\n`;
+            c.psets.forEach((p, i) => {
+              const num = String(i + 1).padStart(2, "0");
+              md += `- [${p.completed ? "x" : " "}] **PSET#${num}: ${p.title}**\n`;
+              (p.subtopics || []).forEach((s) => {
+                const subObj = typeof s === "string" ? { title: s, completed: false } : s;
+                md += `  - [${subObj.completed ? "x" : " "}] ${subObj.title}\n`;
+              });
+            });
+            md += "\n---\n\n";
+          });
+          return md.trim();
+        }
+
         window.copyAll = function (type) {
-          const content = type === "tree" ? generateTree() : generateReport();
+          let content = "";
+          if (type === "tree") content = generateTree();
+          else if (type === "markdown") content = generateMarkdownReport();
+          else content = generateReport();
+
           if (!content) return toast("No data to copy");
           copyToClipboardWithPreview(content);
         };
@@ -2755,6 +2682,9 @@
         };
 
         window.onload = () => {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW registration failed", err));
+          }
           initCurriculum();
           const saved = localStorage.getItem(STORAGE_KEY);
           if (saved) {
